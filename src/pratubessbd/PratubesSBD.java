@@ -19,9 +19,9 @@ public class PratubesSBD {
                         while(i<kata.length && syntax){
                             if(kata[i].toLowerCase() != "join"){
                                 syntax = parserTabel(kata[i], csv);
+                                initial.add(kata[i-1]);
                                 i++;
                                 if(kata[i].toLowerCase() != "join"){
-                                    initial.add(kata[i-1]);
                                     initial.add(kata[i]);
                                     i++;
                                 }
@@ -56,10 +56,6 @@ public class PratubesSBD {
     
     static boolean parserTabel(String kata, List<List<String>> csv){
         return false;
-    }
-    
-    static void inputInitial(String kata, List<String> initial){
-        
     }
     
     static boolean parserOn(String kata, List<List<String>> csv, List<String> initial){
