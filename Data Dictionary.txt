@@ -1,0 +1,2 @@
+aplikasi;id_aplikasi;nama_aplikasi;rating;alamat_website,jenis_aplikasi;id_admin#
+admin;id_admin;nama_admin;jabatan_admin;gender;gaji_admin;id_aplikasi#
