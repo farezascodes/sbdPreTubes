@@ -5,8 +5,9 @@ import java.util.*;
 
 public class PratubesSBD {
     
-    static boolean parserQuery(String[] kata) throws IOException{
+    static boolean parserQuery(String[] kata, List<String> initial) throws IOException{
         List<List<String>> csv = new ArrayList();
+        boolean syntax = false;
         csv = bacafile();
         if(kata.length > 3){
             if(kata[kata.length-1].charAt(kata[kata.length-1].length()-1) == ';'){
@@ -15,11 +16,11 @@ public class PratubesSBD {
                 if(kata[0].toLowerCase().equals("select")){
                     if(kata[2].toLowerCase().equals("from")){
                         int i = 3;
-                        boolean syntax = true;
+                        syntax = true;
                         boolean joinState = false;
                         boolean initialState = false;
                         boolean afterInitialState = false;
-                        List<String> initial = new ArrayList();
+                        
                         while(i<kata.length && syntax){
                             if(initialState){
                                 if(!kata[i].toLowerCase().equals("join")){
@@ -48,13 +49,12 @@ public class PratubesSBD {
                         }
                         if(syntax){
                             syntax = parserKolom(kata[1], csv, initial);
-                            return syntax;
                         }
                     }
                 }
             }
         }
-        return false;
+        return syntax;
     }
     
     static boolean parserKolom(String kata, List<List<String>> csv, List<String> inisial){
@@ -70,7 +70,6 @@ public class PratubesSBD {
                     if(temp[0].equals(inisial.get(j))){
                         for(int k=0;k<csv.size();k++){
                             if(csv.get(k).get(0).equals(inisial.get(j-1))){
-                                //search temp[1] pada csv.get(k).get(1) sampai ke csv.get(k).get(csv.get(k).size())
                                 for(int l=1;l<csv.get(k).size();l++){
                                     if(temp[1].equals(csv.get(k).get(l))){
                                         return true;
@@ -110,8 +109,9 @@ public class PratubesSBD {
         return false;
     }
     
-    static void printSpesifikasi(){
+    static void printSpesifikasi(String kata[], List<String> initial){
         // print apa yang soal butuhkan
+        System.out.println("Print Spesifikasi");
     }
     
     static List bacafile() throws FileNotFoundException, IOException{
@@ -142,7 +142,7 @@ public class PratubesSBD {
         Scanner sc = new Scanner(System.in);
         String input = sc.nextLine();
         String[] syntax = input.split(" ");
-
+        List<String> initial = new ArrayList();
         List<List<String>> csv = new ArrayList();
         csv = bacafile();
         
@@ -152,7 +152,8 @@ public class PratubesSBD {
 
 // C:\\Users\\ahmad\\Documents\\NetBeansProjects\\pratubesSBD\\
 
-        if(parserQuery(syntax)){
+        if(parserQuery(syntax, initial)){
+            printSpesifikasi(syntax, initial);
             System.out.println("MATA PANCING");
         } else {
             System.out.println("BANGSAT");
