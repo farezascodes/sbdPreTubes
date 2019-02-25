@@ -10,34 +10,41 @@ public class PratubesSBD {
         csv = bacafile();
         if(kata.length > 3){
             if(kata[kata.length-1].charAt(kata[kata.length-1].length()-1) == ';'){
-                if(kata[0].toLowerCase() == "select"){
-                    if(kata[2].toLowerCase() == "from"){
+                kata[kata.length-1] = kata[kata.length-1].substring(0,kata[kata.length-1].length()-1);
+                // menghilangkan indeks terakhir pada kata[kata.length-1]
+                if(kata[0].toLowerCase().equals("select")){
+                    if(kata[2].toLowerCase().equals("from")){
                         int i = 3;
                         boolean syntax = true;
                         boolean joinState = false;
+                        boolean initialState = false;
+                        boolean afterInitialState = false;
                         List<String> initial = new ArrayList();
                         while(i<kata.length && syntax){
-                            if(kata[i].toLowerCase() != "join"){
-                                syntax = parserTabel(kata[i], csv);
-                                initial.add(kata[i-1]);
-                                i++;
-                                if(kata[i].toLowerCase() != "join"){
+                            if(initialState){
+                                if(!kata[i].toLowerCase().equals("join")){
                                     initial.add(kata[i]);
-                                    i++;
+                                } else {
+                                    initial.add(" ");
                                 }
-                                if(joinState){
-                                    if(kata[i].toLowerCase() == "on"){
-                                        i++;
-                                        syntax = parserOn(kata[i], csv, initial);
-                                    } else {
-                                        syntax = false;
-                                    }
-                                    joinState = false;
-                                }
+                                initialState = false;
+                                afterInitialState = true;
+                                
+                            }
+                            else if(!kata[i].toLowerCase().equals("join")){
+                                syntax = parserTabel(kata[i], csv);
+                                initial.add(kata[i]);
+                                initialState = true;
+                            } 
+                            else if(joinState && afterInitialState){
+                                syntax = parserOn(kata[i],csv,initial);
+                                joinState = false;
+                                afterInitialState = false;
                             } else {
                                 joinState = true;
-                                i++;
+                                afterInitialState = false;
                             }
+                            i++;
                         }
                         if(syntax){
                             syntax = parserKolom(kata[1], csv, initial);
@@ -62,10 +69,10 @@ public class PratubesSBD {
                 for(int j=1;j<inisial.size();j=j+2){
                     if(temp[0]==inisial.get(j)){
                         for(int k=0;k<csv.size();k++){
-                            if(csv.get(k).get(0)==inisial.get(j-1)){
+                            if(csv.get(k).get(0).equals(inisial.get(j-1))){
                                 //search temp[1] pada csv.get(k).get(1) sampai ke csv.get(k).get(csv.get(k).size())
                                 for(int l=1;l<csv.get(k).size();l++){
-                                    if(temp[1]==csv.get(k).get(l)){
+                                    if(temp[1].equals(csv.get(k).get(l))){
                                         return true;
                                     }
                                 }
@@ -75,18 +82,17 @@ public class PratubesSBD {
                 }
             }else if(temp.length==1){
                 for(int j=0;j<inisial.size();j=j+2){
-                    if(temp[0]==inisial.get(j)){
                         for(int k=0;k<csv.size();k++){
-                            if(csv.get(k).get(0)==inisial.get(j)){
-                                //search temp[0] pada csv.get(k).get(1) sampai ke csv.get(k).get(csv.get(k).size())
+                            System.out.println(csv.get(k).get(0));
+                            System.out.println(inisial.get(j));
+                            if(csv.get(k).get(0).equals(inisial.get(j))){
                                 for(int l=1;l<csv.get(k).size();l++){
-                                    if(temp[0]==csv.get(k).get(l)){
+                                    if(temp[0].equals(csv.get(k).get(l))){
                                         return true;
                                     }
                                 }
                             }
                         }
-                    }
                 }
             }
         }
@@ -95,7 +101,7 @@ public class PratubesSBD {
     
     static boolean parserTabel(String kata, List<List<String>> csv){
         for(int i=0;i<=csv.size();i++){            
-            if(kata==csv.get(i).get(0)){
+            if(kata.equals(csv.get(i).get(0))){
                 return true;
             }            
         }
@@ -135,13 +141,12 @@ public class PratubesSBD {
     }
     
     public static void main(String[] args) throws IOException {
-//        Scanner sc = new Scanner(System.in);
-//        String input = sc.nextLine();
-//        String[] syntax = input.split(" ");
+        Scanner sc = new Scanner(System.in);
+        String input = sc.nextLine();
+        String[] syntax = input.split(" ");
 
         List<List<String>> csv = new ArrayList();
         csv = bacafile();
-        System.out.println(csv);
         
 //        for(int i = 0; i < syntax.length;i++){
 //            System.out.println(syntax[i]);
@@ -149,10 +154,10 @@ public class PratubesSBD {
 
 // C:\\Users\\ahmad\\Documents\\NetBeansProjects\\pratubesSBD\\
 
-//        if(parser(syntax)){
-//            printSpesifikasi();
-//        } else {
-//            System.out.println("syntax Error");
-//        }
+        if(parserQuery(syntax)){
+            System.out.println("MATA PANCING");
+        } else {
+            System.out.println("BANGSAT");
+        }
     }
 }
