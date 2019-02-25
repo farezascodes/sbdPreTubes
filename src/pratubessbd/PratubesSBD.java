@@ -67,7 +67,7 @@ public class PratubesSBD {
             temp=pisahKoma[i].split("\\.");
             if(temp.length==2){
                 for(int j=1;j<inisial.size();j=j+2){
-                    if(temp[0]==inisial.get(j)){
+                    if(temp[0].equals(inisial.get(j))){
                         for(int k=0;k<csv.size();k++){
                             if(csv.get(k).get(0).equals(inisial.get(j-1))){
                                 //search temp[1] pada csv.get(k).get(1) sampai ke csv.get(k).get(csv.get(k).size())
@@ -83,8 +83,6 @@ public class PratubesSBD {
             }else if(temp.length==1){
                 for(int j=0;j<inisial.size();j=j+2){
                         for(int k=0;k<csv.size();k++){
-                            System.out.println(csv.get(k).get(0));
-                            System.out.println(inisial.get(j));
                             if(csv.get(k).get(0).equals(inisial.get(j))){
                                 for(int l=1;l<csv.get(k).size();l++){
                                     if(temp[0].equals(csv.get(k).get(l))){
