@@ -153,14 +153,39 @@ public class PratubesSBD {
     
     static boolean parserOn(String kata, List<List<String>> csv, List<String> initial){
         // input berupa (m.mhs=r.mhs)
-        String[] pisahtitik;
+        String[] pisahtitik=null;
         String[] temp;
+        ArrayList<String> temp2= new ArrayList();
+        boolean cekKolom=false;
+        
         System.out.println(kata);
+        
         kata = kata.substring(1, kata.length()-1);
         temp = kata.split("=");
-        System.out.println(temp[0]);
-        System.out.println(temp[1]);
+        
+//        System.out.println(temp[0]);
+//        System.out.println(temp[1]);
+        
+//        for(int i=0;i<temp.length;i++){
+//            pisahtitik=temp[i].split("\\."); //tauk kerja ato gak
+//        }
+        
+        //ini kerjaan fareza:
         if(temp.length==2){
+            for(int i=0;i<temp.length;i++){
+                if(parserKolom(temp[i].toString(),csv,initial)==true){
+                    pisahtitik=temp[i].split("\\.");
+                    temp2.add(pisahtitik[0]);
+                    temp2.add(pisahtitik[1]);
+                }
+            }
+            if(temp2.size()==4){
+//                System.out.println(temp2.get(0));
+//                System.out.println(temp2.get(2));
+                if(temp2.get(0)!=temp2.get(2)){
+                    return true;
+                }
+            }           
         }
         return false;
     }
