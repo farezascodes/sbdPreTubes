@@ -17,10 +17,10 @@ public class PratubesSBD {
                     if(kata[2].toLowerCase().equals("from")){
                         int i = 3;
                         syntax = true;
-                        boolean initialsCheck = false;
-                        boolean joinState = false;
-                        while(i<kata.length && syntax){
-                            if(!kata[i].equalsIgnoreCase("join") && !kata[i].equalsIgnoreCase("on")){
+                        boolean initialsCheck = false; //expect selanjutnya adalah inisial tabel, contoh:"mahasiswa m"
+                        boolean joinState = false; //untuk cek kalo kata selanjutnya "join"
+                        while(i<kata.length && syntax){ //loop kata sepanjang i
+                            if(!kata[i].equalsIgnoreCase("join") && !kata[i].equalsIgnoreCase("on")){ //cek kalo bukan join atau on
                                 if(initialsCheck == true){
                                     System.out.println("This is Initials");
                                     initials.add(kata[i]);
@@ -101,7 +101,7 @@ public class PratubesSBD {
         return syntax;
     }
     
-    static boolean parserKolom(String kata, List<List<String>> csv, List<String> inisial){
+    static boolean parserKolom(String kata, List<List<String>> csv, List<String> inisial){ //dipakai kalo dipanggil nama kolomnya
         String[] pisahKoma;
         String[] temp;
         System.out.println(kata);
@@ -109,29 +109,31 @@ public class PratubesSBD {
         
         for(int i=0;i<pisahKoma.length;i++){
             temp=pisahKoma[i].split("\\.");
-            if(temp.length==2){
-                for(int j=1;j<inisial.size();j=j+2){
+            if(temp.length==2){ // dilakukan ketika ada inisial pada kolom cth: m.nim
+                for(int j=1;j<inisial.size();j=j+2){ // looping pada list inisial
                     if(temp[0].equals(inisial.get(j))){
-                        for(int k=0;k<csv.size();k++){
+                        for(int k=0;k<csv.size();k++){ // looping pada csv(tabel) untuk mengecek inisial benar atau tidak
                             if(csv.get(k).get(0).equals(inisial.get(j-1))){
-                                for(int l=1;l<csv.get(k).size();l++){
+                                for(int l=1;l<csv.get(k).size();l++){ // looping pada csv(kolom) untuk mengecek nama kolom pada csv
                                     if(temp[1].equals(csv.get(k).get(l))){
                                         return true;
                                     }
                                 }
+                                return false;
                             }
                         }
                     }
                 }
             }else if(temp.length==1){
-                for(int j=0;j<inisial.size();j=j+2){
-                        for(int k=0;k<csv.size();k++){
+                for(int j=0;j<inisial.size();j=j+2){ // looping pada list inisial
+                        for(int k=0;k<csv.size();k++){ // looping pada csv(tabel) untuk mengecek kolom pada setiap tabel
                             if(csv.get(k).get(0).equals(inisial.get(j))){
-                                for(int l=1;l<csv.get(k).size();l++){
+                                for(int l=1;l<csv.get(k).size();l++){ // looping pada csv(kolom) untuk mengecek nama kolom pada csv
                                     if(temp[0].equals(csv.get(k).get(l))){
                                         return true;
                                     }
                                 }
+                                return false;
                             }
                         }
                 }
@@ -141,7 +143,7 @@ public class PratubesSBD {
     }
     
     static boolean parserTabel(String kata, List<List<String>> csv){
-        for(int i=0;i<=csv.size();i++){
+        for(int i=0;i<=csv.size();i++){ // looping untuk mencari tabel
             if(kata.equals(csv.get(i).get(0))){
                 return true;
             }
