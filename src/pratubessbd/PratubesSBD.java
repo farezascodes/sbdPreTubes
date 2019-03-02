@@ -165,9 +165,11 @@ public class PratubesSBD {
         return false;
     }
     
-    static void printSpesifikasi(String kata[], List<String> initial){
+    static void printSpesifikasi(String kata[], List<String> initials){
         // print apa yang soal butuhkan
-        System.out.println("Print Spesifikasi");
+        for(int j=1;j<initials.size();j=j+2){
+            System.out.println("");
+        }
     }
     
     static List bacafile() throws FileNotFoundException, IOException{
