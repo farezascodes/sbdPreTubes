@@ -17,6 +17,7 @@ public class PratubesSBD {
                     if(kata[2].toLowerCase().equals("from")){
                         int i = 3;
                         syntax = true;
+                        boolean tempSyntax = true; // digunakan ketika membaca join
                         boolean initialsCheck = false; //expect selanjutnya adalah inisial tabel, contoh:"mahasiswa m"
                         boolean joinState = false; //untuk cek kalo kata selanjutnya "join"
                         while(i<kata.length && syntax){ //loop kata sepanjang i
@@ -38,6 +39,7 @@ public class PratubesSBD {
                                     syntax = false;
                                 }
                                 joinState = true;
+                                tempSyntax = false;
                             }
                             else if(kata[i].equalsIgnoreCase("on")){
                                 System.out.println("This is On");
@@ -48,6 +50,7 @@ public class PratubesSBD {
                                 else {
                                     syntax = false;
                                 }
+                                tempSyntax = true;
                             }
                             System.out.println(syntax);
                             i++;
@@ -55,7 +58,10 @@ public class PratubesSBD {
                         if(syntax){
                             syntax = parserKolom(kata[1], csv, initials);
                         }
-                        
+                        if(!tempSyntax){
+                            syntax = false;
+                            System.out.println("Ketangkep bro");
+                        }
                         
 //                        boolean joinState = false;
 //                        boolean initialState = false;
@@ -174,9 +180,14 @@ public class PratubesSBD {
         if(temp.length==2){
             for(int i=0;i<temp.length;i++){
                 if(parserKolom(temp[i].toString(),csv,initial)==true){
+                    System.out.println("Mbela");
                     pisahtitik=temp[i].split("\\.");
-                    temp2.add(pisahtitik[0]);
-                    temp2.add(pisahtitik[1]);
+                    if (pisahtitik.length == 2){
+                        temp2.add(pisahtitik[0]);
+                    }
+                    else{
+                        temp2.add(" ");
+                    }
                 }
             }
             if(temp2.size()==4){
