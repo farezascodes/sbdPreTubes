@@ -88,40 +88,59 @@ public class PratubesSBD {
         System.out.println(kata);
         pisahKoma=kata.split(",");
         
-        for(int i=0;i<pisahKoma.length;i++){
-            temp=pisahKoma[i].split("\\.");
-            if(temp.length==2){ // dilakukan ketika ada inisial pada kolom cth: m.nim
-                for(int j=1;j<inisial.size();j=j+2){ // looping pada list inisial
-                    if(temp[0].equals(inisial.get(j))){
-                        for(int k=0;k<csv.size();k++){ // looping pada csv(tabel) untuk mengecek inisial benar atau tidak
-                            if(csv.get(k).get(0).equals(inisial.get(j-1))){
-                                for(int l=1;l<csv.get(k).size();l++){ // looping pada csv(kolom) untuk mengecek nama kolom pada csv
-                                    if(temp[1].equals(csv.get(k).get(l))){
+        // for(int i=0;i<pisahKoma.length;i++){
+        //     temp=pisahKoma[i].split("\\.");
+        //     if(temp.length==2){ // dilakukan ketika ada inisial pada kolom cth: m.nim
+        //         for(int j=1;j<inisial.size();j=j+2){ // looping pada list inisial
+        //             if(temp[0].equals(inisial.get(j))){
+        //         for(int k=0;k<csv.size();k++){ // looping pada csv(tabel) untuk mengecek inisial benar atau tidak
+        //                     if(csv.get(k).get(0).equals(inisial.get(j-1))){
+        //                         for(int l=1;l<csv.get(k).size();l++){ // looping pada csv(kolom) untuk mengecek nama kolom pada csv
+        //                             if(temp[1].equals(csv.get(k).get(l))){
                                         
-                                        return true;
-                                    }
-                                }
-                                return false;
-                            }
+        //                                 return true;
+        //                             }
+        //                         }
+        //                         return false;
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }else if(temp.length==1){
+        //         for(int j=0;j<inisial.size();j=j+2){ // looping pada list inisial
+        //                 for(int k=0;k<csv.size();k++){ // looping pada csv(tabel) untuk mengecek kolom pada setiap tabel
+        //                     if(csv.get(k).get(0).equals(inisial.get(j))){
+        //                         for(int l=1;l<csv.get(k).size();l++){ // looping pada csv(kolom) untuk mengecek nama kolom pada csv
+        //                             if(temp[0].equals(csv.get(k).get(l))){
+        //                                 return true;
+        //                             }
+        //                         }
+        //                         return false;
+        //                     }
+        //                 }
+        //         }
+        //     }
+        // }
+        // return false;
+
+        for (String word:pisahKoma){
+            temp = word.split("\\.");
+            boolean check = true;
+            if (temp.length==2) {
+                int j =inisial.indexOf(temp[0]);
+                if (j==-1)return false;
+                for(int k=0;k<csv.size();k++){
+                    if (csv.get(k).get(0).equals(inisial.get(j-1))){
+                        if(csv.get(k).indexOf(temp[1]) == -1)){
+                            return false;
+                        }
+                        else{
+                            
                         }
                     }
                 }
-            }else if(temp.length==1){
-                for(int j=0;j<inisial.size();j=j+2){ // looping pada list inisial
-                        for(int k=0;k<csv.size();k++){ // looping pada csv(tabel) untuk mengecek kolom pada setiap tabel
-                            if(csv.get(k).get(0).equals(inisial.get(j))){
-                                for(int l=1;l<csv.get(k).size();l++){ // looping pada csv(kolom) untuk mengecek nama kolom pada csv
-                                    if(temp[0].equals(csv.get(k).get(l))){
-                                        return true;
-                                    }
-                                }
-                                return false;
-                            }
-                        }
-                }
             }
         }
-        return false;
     }
     
     static boolean parserTabel(String kata, List<List<String>> csv){
