@@ -10,7 +10,6 @@ public class PratubesSBD {
         List<List<String>> csv = new ArrayList();
         boolean syntax = false;
         csv = bacafile();
-        System.out.println(csv);
         if(kata.length > 3){
             if(kata[kata.length-1].charAt(kata[kata.length-1].length()-1) == ';'){ // cek untuk ';' diakhir
                 kata[kata.length-1] = kata[kata.length-1].substring(0,kata[kata.length-1].length()-1); // menghilangkan indeks terakhir pada kata[kata.length-1]
@@ -24,18 +23,17 @@ public class PratubesSBD {
                         while(i<kata.length && syntax){ //loop kata sepanjang i
                             if(!kata[i].equalsIgnoreCase("join") && !kata[i].equalsIgnoreCase("on")){ //cek kalo bukan join atau on
                                 if(initialsCheck == true){
-                                    System.out.println("This is Initials");
                                     initials.add(kata[i]);
                                     initialsCheck = false;
+                                    
                                 } else {
                                     syntax = parserTabel(kata[i], csv);
-                                    System.out.println("This is Tabel");
                                     initialsCheck = true;
                                     initials.add(kata[i]);
+                                    if(kata.length-1 == i) initials.add("");
                                 }
                             }
                             else if(kata[i].equalsIgnoreCase("join")){
-                                System.out.println("This is Join");
                                 if (initialsCheck == true){
                                     initials.add(" ");
                                     initialsCheck = false;
@@ -57,17 +55,16 @@ public class PratubesSBD {
                                         List<String> templist = new ArrayList();
                                         usedData.add(templist);
                                     }
-                                    System.out.println(i);
-                                    System.out.println(kata[i]);
                                     syntax = parserOn(kata[i],csv,initials);
                                     usedData.clear();
                                 }
+                                
                                 else {
                                     syntax = false;
                                 }
+                                joinState = false;
                                 tempSyntax = true;
                             }
-                            System.out.println(syntax);
                             i++;
                         }
                         if(syntax){
@@ -75,29 +72,22 @@ public class PratubesSBD {
                                 List<String> templist = new ArrayList();
                                 usedData.add(templist);
                             }
-                            System.out.println(usedData);
                             String[] temp;
                             temp = kata[1].split(",");
                             for(i=0;i<temp.length;i++){
-                                System.out.println("TEMP KE I: ");
-                                System.out.println(temp[i]);
                                 syntax = parserKolom(temp[i], csv, initials);
                                 if(!syntax){
-                                    System.out.println("kok salah");
                                     break;
                                 }
                             }
                         }
                         if(!tempSyntax){
                             syntax = false;
-                            System.out.println("Ketangkep bro");
                         }
                     }
                 }
             }
         }
-        System.out.println(initials);
-        System.out.println(usedData);
         
         return syntax;
     }
@@ -148,7 +138,6 @@ public class PratubesSBD {
         boolean check = true;
         if (temp.length==2) {
             int j =inisial.indexOf(temp[0]);
-            System.out.println("j: " + j);
             if (j==-1)return false;
             for(int k=0;k<csv.size();k++){
                 if (csv.get(k).get(0).equals(inisial.get(j-1))){
@@ -156,7 +145,7 @@ public class PratubesSBD {
                         return false;
                     }
                     else{
-                        usedData.get(j/2).add(temp[1]);
+                        usedData.get((j-1)/2).add(temp[1]);
                         return true;
                     }
                 }
@@ -187,16 +176,11 @@ public class PratubesSBD {
     
     static boolean parserOn(String kata, List<List<String>> csv, List<String> initial){
         // input berupa (m.mhs=r.mhs)
-        System.out.println("---- INI BAGIAN PARSERON ----");
         String[] pisahtitik=null;
         String[] temp;
         ArrayList<String> temp2= new ArrayList();
-        System.out.println(kata);
         kata = kata.substring(1, kata.length()-1);
-        System.out.println(kata);
         temp = kata.split("=");
-        System.out.println(temp[0]);
-        System.out.println(temp.length);
         
         //ini kerjaan fareza:
         if(temp.length==2){
@@ -211,24 +195,23 @@ public class PratubesSBD {
                     }
                 }
             }
-            System.out.println("ini size temp2: ");
-            System.out.println(temp2.size());
             if(temp2.size()==2){
-                System.out.println(temp2.get(0));
-                System.out.println(temp2.get(1));
                 if(!temp2.get(0).equals(temp2.get(1))){
-                    System.out.println("ini bener");
                     return true;
                 }
             }           
         }
-        System.out.println("---- END OF PARSER ON ----");
         return false;
     }
     
-    static void printSpesifikasi(String kata[], List<String> initials){
+    static void printSpesifikasi(List<String> initials){
         // print apa yang soal butuhkan
-        for(int j=1;j<initials.size();j=j+2){
+        for(int i=0;i<initials.size();i=i+2){
+            System.out.println("\nTabel : "+ initials.get(i));
+            System.out.print("Atribut: ");
+            for(int j=0;j<usedData.get(i/2).size();j++){
+                System.out.print(usedData.get(i/2).get(j) + ", ");
+            }
             System.out.println("");
         }
     }
@@ -259,6 +242,7 @@ public class PratubesSBD {
     
     public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
+        System.out.println("Query: ");
         String input = sc.nextLine();
         String[] syntax = input.split(" ");
         List<String> initials = new ArrayList();
@@ -268,10 +252,9 @@ public class PratubesSBD {
 // C:\\Users\\ahmad\\Documents\\NetBeansProjects\\pratubesSBD\\
 
         if(parserQuery(syntax, initials)){
-            printSpesifikasi(syntax, initials);
-            System.out.println("MATA PANCING");
+            printSpesifikasi(initials);
         } else {
-            System.out.println("BANGSAT");
+            System.out.println("\nSyntax Error");
         }
     }
 }

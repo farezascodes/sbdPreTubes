@@ -1,4 +1,4 @@
-aplikasi;id_aplikasi;nama_aplikasi;rating;alamat_website,jenis_aplikasi;id_admin#
+aplikasi;id_aplikasi;nama_aplikasi;rating;alamat_website;jenis_aplikasi;id_admin#
 admin;id_admin;nama_admin;jabatan_admin;gender;gaji_admin;id_aplikasi#
 dokter;ID_dok;nama_dok;umur_dok;spesialisasi;noTelp_dok#
 konsultasi;id_konsul;harga;ID_dok;ID_pasien#
