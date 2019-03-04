@@ -4,10 +4,11 @@ import java.io.*;
 import java.util.*;
 
 public class PratubesSBD {
+    private List<String> TabelKolom=new ArrayList();
+    static List<List<String>> usedData;
     
     static boolean parserQuery(String[] kata, List<String> initials) throws IOException{
         List<List<String>> csv = new ArrayList();
-        List<List<String>> usedData;
         boolean syntax = false;
         csv = bacafile();
         System.out.println(csv);
@@ -76,6 +77,7 @@ public class PratubesSBD {
             }
         }
         System.out.println(initials);
+        
         return syntax;
     }
     
@@ -94,6 +96,7 @@ public class PratubesSBD {
                             if(csv.get(k).get(0).equals(inisial.get(j-1))){
                                 for(int l=1;l<csv.get(k).size();l++){ // looping pada csv(kolom) untuk mengecek nama kolom pada csv
                                     if(temp[1].equals(csv.get(k).get(l))){
+                                        
                                         return true;
                                     }
                                 }
@@ -121,8 +124,11 @@ public class PratubesSBD {
     }
     
     static boolean parserTabel(String kata, List<List<String>> csv){
-        for(int i=0;i<=csv.size();i++){ // looping untuk mencari tabel
+        for(int i=0;i<csv.size();i++){ // looping untuk mencari tabel
             if(kata.equals(csv.get(i).get(0))){
+                for(int k=0;k<usedData.size();k++){
+                    if()
+                }
                 return true;
             }
         }
