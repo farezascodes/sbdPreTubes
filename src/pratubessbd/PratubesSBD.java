@@ -5,6 +5,8 @@ import java.util.*;
 
 public class PratubesSBD {
     static List<List<String>> usedData=new ArrayList();
+    static List<String> tabel=new ArrayList();
+    static List<String> kolom=new ArrayList();
     
     static boolean parserQuery(String[] kata, List<String> initials) throws IOException{
         List<List<String>> csv = new ArrayList();
