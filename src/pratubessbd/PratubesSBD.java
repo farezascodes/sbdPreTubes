@@ -77,6 +77,7 @@ public class PratubesSBD {
             }
         }
         System.out.println(initials);
+        System.out.println(usedData);
         
         return syntax;
     }
@@ -126,8 +127,10 @@ public class PratubesSBD {
     static boolean parserTabel(String kata, List<List<String>> csv){
         for(int i=0;i<csv.size();i++){ // looping untuk mencari tabel
             if(kata.equals(csv.get(i).get(0))){
-                for(int k=0;k<usedData.size();k++){
-                    if()
+                for(int k=0;k<usedData.size();k++){          //keluarin nama tabel ke list usedData
+                    if(usedData.get(k).get(0)==""){
+                        usedData.get(k).add(0, kata);
+                    }
                 }
                 return true;
             }
