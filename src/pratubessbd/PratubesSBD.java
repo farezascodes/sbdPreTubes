@@ -4,8 +4,7 @@ import java.io.*;
 import java.util.*;
 
 public class PratubesSBD {
-    private List<String> TabelKolom=new ArrayList();
-    static List<List<String>> usedData;
+    static List<List<String>> usedData=new ArrayList();
     
     static boolean parserQuery(String[] kata, List<String> initials) throws IOException{
         List<List<String>> csv = new ArrayList();
@@ -52,10 +51,16 @@ public class PratubesSBD {
                                     initials.add(" ");
                                     initialsCheck = false;
                                 }
-                                System.out.println("This is On");
                                 i++;
                                 if (i<kata.length){
+                                    for (int j=0;j<initials.size()/2;j++){
+                                        List<String> templist = new ArrayList();
+                                        usedData.add(templist);
+                                    }
+                                    System.out.println(i);
+                                    System.out.println(kata[i]);
                                     syntax = parserOn(kata[i],csv,initials);
+                                    usedData.clear();
                                 }
                                 else {
                                     syntax = false;
@@ -66,7 +71,22 @@ public class PratubesSBD {
                             i++;
                         }
                         if(syntax){
-                            syntax = parserKolom(kata[1], csv, initials);
+                            for (i=0;i<initials.size()/2;i++){
+                                List<String> templist = new ArrayList();
+                                usedData.add(templist);
+                            }
+                            System.out.println(usedData);
+                            String[] temp;
+                            temp = kata[1].split(",");
+                            for(i=0;i<temp.length;i++){
+                                System.out.println("TEMP KE I: ");
+                                System.out.println(temp[i]);
+                                syntax = parserKolom(temp[i], csv, initials);
+                                if(!syntax){
+                                    System.out.println("kok salah");
+                                    break;
+                                }
+                            }
                         }
                         if(!tempSyntax){
                             syntax = false;
@@ -83,10 +103,10 @@ public class PratubesSBD {
     }
     
     static boolean parserKolom(String kata, List<List<String>> csv, List<String> inisial){ //dipakai kalo dipanggil nama kolomnya
-        String[] pisahKoma;
+        //String[] pisahKoma;
         String[] temp;
-        System.out.println(kata);
-        pisahKoma=kata.split(",");
+        //System.out.println(kata);
+        //pisahKoma=kata.split(",");
         
         // for(int i=0;i<pisahKoma.length;i++){
         //     temp=pisahKoma[i].split("\\.");
@@ -123,34 +143,42 @@ public class PratubesSBD {
         // }
         // return false;
 
-        for (String word:pisahKoma){
-            temp = word.split("\\.");
-            boolean check = true;
-            if (temp.length==2) {
-                int j =inisial.indexOf(temp[0]);
-                if (j==-1)return false;
-                for(int k=0;k<csv.size();k++){
-                    if (csv.get(k).get(0).equals(inisial.get(j-1))){
-                        if(csv.get(k).indexOf(temp[1]) == -1)){
-                            return false;
-                        }
-                        else{
-                            
-                        }
+        //for (String word:pisahKoma){ ap rating
+        temp = kata.split("\\.");
+        boolean check = true;
+        if (temp.length==2) {
+            int j =inisial.indexOf(temp[0]);
+            System.out.println("j: " + j);
+            if (j==-1)return false;
+            for(int k=0;k<csv.size();k++){
+                if (csv.get(k).get(0).equals(inisial.get(j-1))){
+                    if(csv.get(k).indexOf(temp[1]) == -1){
+                        return false;
+                    }
+                    else{
+                        usedData.get(j/2).add(temp[1]);
+                        return true;
                     }
                 }
             }
+        } else {
+            for(int k=0;k<csv.size();k++){
+                int j = inisial.indexOf(csv.get(k).get(0));
+                if(csv.get(k).indexOf(temp[0]) != -1)
+                {
+                    usedData.get(j/2).add(temp[0]);
+                    return true;
+                }
+            }
+            return false;
         }
+    //    }
+    return false;
     }
     
     static boolean parserTabel(String kata, List<List<String>> csv){
         for(int i=0;i<csv.size();i++){ // looping untuk mencari tabel
             if(kata.equals(csv.get(i).get(0))){
-                for(int k=0;k<usedData.size();k++){          //keluarin nama tabel ke list usedData
-                    if(usedData.get(k).get(0)==""){
-                        usedData.get(k).add(0, kata);
-                    }
-                }
                 return true;
             }
         }
@@ -159,17 +187,21 @@ public class PratubesSBD {
     
     static boolean parserOn(String kata, List<List<String>> csv, List<String> initial){
         // input berupa (m.mhs=r.mhs)
+        System.out.println("---- INI BAGIAN PARSERON ----");
         String[] pisahtitik=null;
         String[] temp;
         ArrayList<String> temp2= new ArrayList();
-        
+        System.out.println(kata);
         kata = kata.substring(1, kata.length()-1);
+        System.out.println(kata);
         temp = kata.split("=");
+        System.out.println(temp[0]);
+        System.out.println(temp.length);
         
         //ini kerjaan fareza:
         if(temp.length==2){
             for(int i=0;i<temp.length;i++){
-                if(parserKolom(temp[i].toString(),csv,initial)==true){
+                if(parserKolom(temp[i].toString(),csv,initial)){
                     pisahtitik=temp[i].split("\\.");
                     if (pisahtitik.length == 2){
                         temp2.add(pisahtitik[0]);
@@ -190,6 +222,7 @@ public class PratubesSBD {
                 }
             }           
         }
+        System.out.println("---- END OF PARSER ON ----");
         return false;
     }
     
