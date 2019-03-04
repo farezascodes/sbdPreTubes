@@ -7,6 +7,7 @@ public class PratubesSBD {
     
     static boolean parserQuery(String[] kata, List<String> initials) throws IOException{
         List<List<String>> csv = new ArrayList();
+        List<List<String>> usedData;
         boolean syntax = false;
         csv = bacafile();
         System.out.println(csv);
@@ -35,6 +36,10 @@ public class PratubesSBD {
                             }
                             else if(kata[i].equalsIgnoreCase("join")){
                                 System.out.println("This is Join");
+                                if (initialsCheck == true){
+                                    initials.add(" ");
+                                    initialsCheck = false;
+                                }
                                 if (joinState == true){
                                     syntax = false;
                                 }
@@ -42,10 +47,14 @@ public class PratubesSBD {
                                 tempSyntax = false;
                             }
                             else if(kata[i].equalsIgnoreCase("on")){
+                                if (initialsCheck == true){
+                                    initials.add(" ");
+                                    initialsCheck = false;
+                                }
                                 System.out.println("This is On");
                                 i++;
                                 if (i<kata.length){
-                                    parserOn(kata[i],csv,initials);
+                                    syntax = parserOn(kata[i],csv,initials);
                                 }
                                 else {
                                     syntax = false;
@@ -62,48 +71,11 @@ public class PratubesSBD {
                             syntax = false;
                             System.out.println("Ketangkep bro");
                         }
-                        
-//                        boolean joinState = false;
-//                        boolean initialState = false;
-//                        boolean afterInitialState = false;
-//                        while(i<kata.length && syntax){
-//                            if(initialState){
-//                                if(!kata[i].toLowerCase().equals("join")){
-//                                    initial.add(kata[i]);
-//                                    System.out.println("BEBEK");
-//                                    System.out.println(kata[i]);
-//                                } else {
-//                                    initial.add(" ");
-//                                    i--;
-//                                }
-//                                initialState = false;
-//                                afterInitialState = true;
-//                            } 
-//                            else if(joinState && afterInitialState){
-//                                syntax = parserOn(kata[i],csv,initial);
-//                                joinState = false;
-//                                afterInitialState = false;
-//                            }
-//                            else if(!kata[i].toLowerCase().equals("join")){
-//                                syntax = parserTabel(kata[i], csv);
-//                                initial.add(kata[i]);
-//                                initialState = true;
-//                            } else {
-//                                joinState = true;
-//                                afterInitialState = false;
-//                            }
-//                            i++;
-//                        }
-//                        if(joinState){
-//                            syntax = false;
-//                        }
-//                        if(syntax){
-//                            syntax = parserKolom(kata[1], csv, initial);
-//                        }
                     }
                 }
             }
         }
+        System.out.println(initials);
         return syntax;
     }
     
@@ -162,38 +134,30 @@ public class PratubesSBD {
         String[] pisahtitik=null;
         String[] temp;
         ArrayList<String> temp2= new ArrayList();
-        boolean cekKolom=false;
-        
-        System.out.println(kata);
         
         kata = kata.substring(1, kata.length()-1);
         temp = kata.split("=");
-        
-//        System.out.println(temp[0]);
-//        System.out.println(temp[1]);
-        
-//        for(int i=0;i<temp.length;i++){
-//            pisahtitik=temp[i].split("\\."); //tauk kerja ato gak
-//        }
         
         //ini kerjaan fareza:
         if(temp.length==2){
             for(int i=0;i<temp.length;i++){
                 if(parserKolom(temp[i].toString(),csv,initial)==true){
-                    System.out.println("Mbela");
                     pisahtitik=temp[i].split("\\.");
                     if (pisahtitik.length == 2){
                         temp2.add(pisahtitik[0]);
                     }
                     else{
-                        temp2.add(" ");
+                        return false;
                     }
                 }
             }
-            if(temp2.size()==4){
-//                System.out.println(temp2.get(0));
-//                System.out.println(temp2.get(2));
-                if(temp2.get(0)!=temp2.get(2)){
+            System.out.println("ini size temp2: ");
+            System.out.println(temp2.size());
+            if(temp2.size()==2){
+                System.out.println(temp2.get(0));
+                System.out.println(temp2.get(1));
+                if(!temp2.get(0).equals(temp2.get(1))){
+                    System.out.println("ini bener");
                     return true;
                 }
             }           
@@ -240,10 +204,6 @@ public class PratubesSBD {
         List<List<String>> csv = new ArrayList();
         csv = bacafile();
         
-//        for(int i = 0; i < syntax.length;i++){
-//            System.out.println(syntax[i]);
-//        }
-
 // C:\\Users\\ahmad\\Documents\\NetBeansProjects\\pratubesSBD\\
 
         if(parserQuery(syntax, initials)){
