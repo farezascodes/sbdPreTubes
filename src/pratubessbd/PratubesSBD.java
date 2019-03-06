@@ -5,86 +5,85 @@ import java.util.*;
 
 public class PratubesSBD {
     static List<List<String>> usedData=new ArrayList();
-    static List<String> tabel=new ArrayList();
-    static List<String> kolom=new ArrayList();
     
     static boolean parserQuery(String[] kata, List<String> initials) throws IOException{
         List<List<String>> csv = new ArrayList();
         boolean syntax = false;
-        csv = bacafile();
+        csv = bacafile();//baca file database
         if(kata.length > 3){
             if(kata[kata.length-1].charAt(kata[kata.length-1].length()-1) == ';'){ // cek untuk ';' diakhir
                 kata[kata.length-1] = kata[kata.length-1].substring(0,kata[kata.length-1].length()-1); // menghilangkan indeks terakhir pada kata[kata.length-1]
-                if(kata[0].toLowerCase().equals("select")){
-                    if(kata[2].toLowerCase().equals("from")){
+                if(kata[0].toLowerCase().equals("select")){ //jika kata pertama select
+                    if(kata[2].toLowerCase().equals("from")){ //jika kata ketiga from
                         int i = 3;
-                        syntax = true;
+                        syntax = true; 
                         boolean tempSyntax = true; // digunakan ketika membaca join
                         boolean initialsCheck = false; //expect selanjutnya adalah inisial tabel, contoh:"mahasiswa m"
                         boolean joinState = false; //untuk cek kalo kata selanjutnya "join"
                         while(i<kata.length && syntax){ //loop kata sepanjang i
                             if(!kata[i].equalsIgnoreCase("join") && !kata[i].equalsIgnoreCase("on")){ //cek kalo bukan join atau on
-                                if(initialsCheck == true){
-                                    initials.add(kata[i]);
-                                    initialsCheck = false;
+                                if(initialsCheck == true){ //jika ditemukan inisial tabel setelah nama tabel
+                                    initials.add(kata[i]); //tambahkan ke list initial
+                                    initialsCheck = false; //kembalikan ke value semula 
                                     
-                                } else {
-                                    syntax = parserTabel(kata[i], csv);
-                                    initialsCheck = true;
-                                    initials.add(kata[i]);
-                                    if(kata.length-1 == i) initials.add("");
+                                } else { //jika kata selanjutnya bukan initial
+                                    syntax = parserTabel(kata[i], csv); //lakukan parserTabel yang mengembalikan boolean
+                                    initialsCheck = true; //telah dilakukan parserTable maka initial check diisi true
+                                    initials.add(kata[i]); //tambahkan nama tabel ke list initial
+                                    
+                                    if(kata.length-1 == i) initials.add(""); //kalau inisial tabel tidak ada tambahkan string kosong 
                                 }
                             }
-                            else if(kata[i].equalsIgnoreCase("join")){
-                                if (initialsCheck == true){
-                                    initials.add(" ");
-                                    initialsCheck = false;
+                            else if(kata[i].equalsIgnoreCase("join")){ //jika kata indeks ke-i adalah join tanpa peduli uppercase atau lowercase
+                                if (initialsCheck == true){ //jika ditemukan inisial tabel setelah nama tabel
+                                    initials.add(" "); //tambahkan whitespace di initial
+                                    initialsCheck = false; //kembalikan initial check ke value semula
                                 }
-                                if (joinState == true){
-                                    syntax = false;
+                                if (joinState == true){ //jika hanya ada join tanpa on maka joinState true
+                                    syntax = false; //karna tidak ada "on" maka query dianggap salah
                                 }
-                                joinState = true;
-                                tempSyntax = false;
+                                joinState = true; 
+                                tempSyntax = false; //jika tidak ditemukan join maka tempSyntax false
                             }
-                            else if(kata[i].equalsIgnoreCase("on")){
-                                if (initialsCheck == true){
-                                    initials.add(" ");
-                                    initialsCheck = false;
+                            else if(kata[i].equalsIgnoreCase("on")){ //jika kata ke-i merupakan "on"
+                                if (initialsCheck == true){ //jika ditemukan inisial tabel setelah nama tabel
+                                    initials.add(" "); //tambahkan whitespace ke list initial
+                                    initialsCheck = false; //kembalikan ke semula
                                 }
-                                i++;
-                                if (i<kata.length){
-                                    for (int j=0;j<initials.size()/2;j++){
+                                i++; //list kata maju
+                                if (i<kata.length){ //jika belum mencapai indeks terakhir dari list kata
+                                    for (int j=0;j<initials.size()/2;j++){ //looping untuk mendapat nama tabel
                                         List<String> templist = new ArrayList();
-                                        usedData.add(templist);
+                                        usedData.add(templist); //append templist ke usedData untuk print
                                     }
-                                    syntax = parserOn(kata[i],csv,initials);
-                                    usedData.clear();
+                                    syntax = parserOn(kata[i],csv,initials); //lakukan parserOn yang mengembalikan boolean
+                                    usedData.clear(); //hapus isi dari usedData
                                 }
                                 
-                                else {
-                                    syntax = false;
+                                else { //jika list kata sudah mencapai indeks terakhir
+                                    syntax = false; //syntaks dianggap false
                                 }
-                                joinState = false;
-                                tempSyntax = true;
+                                joinState = false; //assign joinstate ke false 
+                                tempSyntax = true; //jika ditemukan join maka tempSyntax true
                             }
-                            i++;
+                            i++; //list kata maju
                         }
-                        if(syntax){
-                            for (i=0;i<initials.size()/2;i++){
-                                List<String> templist = new ArrayList();
+                        if(syntax){ //jika syntax masih benar
+                            for (i=0;i<initials.size()/2;i++){ //loop sebanyak size dari list initial dibagi 2 untuk mendapat nama tabel
+                                List<String> templist = new ArrayList(); 
                                 usedData.add(templist);
                             }
-                            String[] temp;
-                            temp = kata[1].split(",");
-                            for(i=0;i<temp.length;i++){
-                                syntax = parserKolom(temp[i], csv, initials);
-                                if(!syntax){
-                                    break;
+                            String[] temp; //define list temp
+                            temp = kata[1].split(","); //tampung nama kolom atau kata apapun yang sudah dipisahkan berdasar "," (koma)
+                            for(i=0;i<temp.length;i++){ //loop sebanyak list temp 
+                                syntax = parserKolom(temp[i], csv, initials); //lakukan parserKolom dari kata yang tertampung di list temp
+                                if(!syntax){ //jika parserKolom mengembalikan false karna query salah
+                                    break; //hentikan for karna dianggap query salah
                                 }
                             }
                         }
-                        if(!tempSyntax){
-                            syntax = false;
+                        if(!tempSyntax){ //jika tidak ditemukan join 
+                            syntax = false; //query salah
                         }
                     }
                 }
@@ -95,51 +94,11 @@ public class PratubesSBD {
     }
     
     static boolean parserKolom(String kata, List<List<String>> csv, List<String> inisial){ //dipakai kalo dipanggil nama kolomnya
-        //String[] pisahKoma;
         String[] temp;
-        //System.out.println(kata);
-        //pisahKoma=kata.split(",");
-        
-        // for(int i=0;i<pisahKoma.length;i++){
-        //     temp=pisahKoma[i].split("\\.");
-        //     if(temp.length==2){ // dilakukan ketika ada inisial pada kolom cth: m.nim
-        //         for(int j=1;j<inisial.size();j=j+2){ // looping pada list inisial
-        //             if(temp[0].equals(inisial.get(j))){
-        //         for(int k=0;k<csv.size();k++){ // looping pada csv(tabel) untuk mengecek inisial benar atau tidak
-        //                     if(csv.get(k).get(0).equals(inisial.get(j-1))){
-        //                         for(int l=1;l<csv.get(k).size();l++){ // looping pada csv(kolom) untuk mengecek nama kolom pada csv
-        //                             if(temp[1].equals(csv.get(k).get(l))){
-                                        
-        //                                 return true;
-        //                             }
-        //                         }
-        //                         return false;
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }else if(temp.length==1){
-        //         for(int j=0;j<inisial.size();j=j+2){ // looping pada list inisial
-        //                 for(int k=0;k<csv.size();k++){ // looping pada csv(tabel) untuk mengecek kolom pada setiap tabel
-        //                     if(csv.get(k).get(0).equals(inisial.get(j))){
-        //                         for(int l=1;l<csv.get(k).size();l++){ // looping pada csv(kolom) untuk mengecek nama kolom pada csv
-        //                             if(temp[0].equals(csv.get(k).get(l))){
-        //                                 return true;
-        //                             }
-        //                         }
-        //                         return false;
-        //                     }
-        //                 }
-        //         }
-        //     }
-        // }
-        // return false;
-
-        //for (String word:pisahKoma){ ap rating
         temp = kata.split("\\.");
         boolean check = true;
         if (temp.length==2) {
-            int j =inisial.indexOf(temp[0]);
+            int j = inisial.indexOf(temp[0]);
             if (j==-1)return false;
             for(int k=0;k<csv.size();k++){
                 if (csv.get(k).get(0).equals(inisial.get(j-1))){
@@ -153,15 +112,19 @@ public class PratubesSBD {
                 }
             }
         } else {
-            for(int k=0;k<csv.size();k++){
-                int j = inisial.indexOf(csv.get(k).get(0));
-                if(csv.get(k).indexOf(temp[0]) != -1)
-                {
-                    usedData.get(j/2).add(temp[0]);
-                    return true;
+            for(int j=0;j<inisial.size();j=j+2 ){
+                for(int k=0;k<csv.size();k++){
+                    if (csv.get(k).get(0).equals(inisial.get(j))){
+                        if(csv.get(k).indexOf(temp[0]) == -1){
+                            return false;
+                        }
+                        else{
+                            usedData.get((j)/2).add(temp[0]);
+                            return true;
+                        }
+                    }
                 }
             }
-            return false;
         }
     //    }
     return false;
@@ -184,7 +147,6 @@ public class PratubesSBD {
         kata = kata.substring(1, kata.length()-1);
         temp = kata.split("=");
         
-        //ini kerjaan fareza:
         if(temp.length==2){
             for(int i=0;i<temp.length;i++){
                 if(parserKolom(temp[i].toString(),csv,initial)){
@@ -234,11 +196,6 @@ public class PratubesSBD {
             a.set(a.size()-1, temp);
             b.add(a);
         }
-        
-//        for(int i = 0; i < b.size(); i++){
-//            System.out.println(b.get(i));
-//        }
-        
         return b;
     }
     
@@ -250,8 +207,6 @@ public class PratubesSBD {
         List<String> initials = new ArrayList();
         List<List<String>> csv = new ArrayList();
         csv = bacafile();
-        
-// C:\\Users\\ahmad\\Documents\\NetBeansProjects\\pratubesSBD\\
 
         if(parserQuery(syntax, initials)){
             printSpesifikasi(initials);
