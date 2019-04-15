@@ -1,3 +1,4 @@
-dokter;id_dok;nama_dok;umur_dok;spesialisasi;notelp_dok#
-konsultasi;id_konsul;harga;id_dok;id_pasien#
-pasien;id_pasien;nama_pasien;alamat_pasien;noTelp_pasien;umur_pasien#
+P 4;B 8129#
+dokter;id_dok;nama_dok;umur_dok;spesialisasi;notelp_dok;R 625;n 350;v 12#
+konsultasi;id_konsul;harga;id_dok;id_pasien;R 350;n 1000;v 10#
+pasien;id_pasien;nama_pasien;alamat_pasien;noTelp_pasien;umur_pasien;R 700;n 5500;v 15#

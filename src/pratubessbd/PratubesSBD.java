@@ -1,10 +1,44 @@
 package pratubessbd;
 
 import java.io.*;
+import static java.lang.Math.ceil;
 import java.util.*;
 
 public class PratubesSBD {
     static List<List<String>> usedData=new ArrayList();
+    
+    static void menu(){
+        Scanner choose = new Scanner(System.in);
+        String choice= null;
+        while(!"0".equals(choice)) {
+            System.out.println("menu: ");
+            System.out.println("1. BFR dan Fan Out Rasio");
+            System.out.println("2. Jumlah Block");
+            System.out.println("3. Pencarian Record");
+            System.out.println("4. QEP dan Cost");
+            System.out.println("5. Shared Pool");
+            choice = choose.nextLine();
+            System.out.println(!"0".equals(choice));
+            if ("1".equals(choice)) {
+                System.out.println("satu");
+            }
+            if ("2".equals(choice)) {
+                System.out.println("dua");
+            }
+            if ("3".equals(choice)) {
+                System.out.println("tiga");
+            }
+            if ("4".equals(choice)) {
+                System.out.println("empat");
+            }
+            if ("5".equals(choice)) {
+                System.out.println("lima");
+            } else {
+                
+            }
+        }
+        choose.close();
+    }
     
     static boolean parserQuery(String[] kata, List<String> initials) throws IOException{
         List<List<String>> csv = new ArrayList();
@@ -21,7 +55,7 @@ public class PratubesSBD {
                         boolean initialsCheck = false; //expect selanjutnya adalah inisial tabel, contoh:"mahasiswa m"
                         boolean joinState = false; //untuk cek kalo kata selanjutnya "join"
                         while(i<kata.length && syntax){ //loop kata sepanjang i
-                            if(!kata[i].equalsIgnoreCase("join") && !kata[i].equalsIgnoreCase("on")){ //cek kalo bukan join atau on
+                            if(!kata[i].equalsIgnoreCase("join") && !kata[i].equalsIgnoreCase("on") && !kata[i].equalsIgnoreCase("using")){ //cek kalo bukan join atau on
                                 if(initialsCheck == true){ //jika ditemukan inisial tabel setelah nama tabel
                                     initials.add(kata[i]); //tambahkan ke list initial
                                     initialsCheck = false; //kembalikan ke value semula 
@@ -49,6 +83,8 @@ public class PratubesSBD {
                                 if (initialsCheck == true){ //jika ditemukan inisial tabel setelah nama tabel
                                     initials.add(" "); //tambahkan whitespace ke list initial
                                     initialsCheck = false; //kembalikan ke semula
+                                } else {
+                                    System.out.println("SQL Error: Not found defined attribute in table");
                                 }
                                 i++; //list kata maju
                                 if (i<kata.length){ //jika belum mencapai indeks terakhir dari list kata
@@ -61,10 +97,16 @@ public class PratubesSBD {
                                 }
                                 
                                 else { //jika list kata sudah mencapai indeks terakhir
-                                    syntax = false; //syntaks dianggap false
+                                    syntax = false;
+                                    System.out.println("Error");//syntaks dianggap false
                                 }
                                 joinState = false; //assign joinstate ke false 
                                 tempSyntax = true; //jika ditemukan join maka tempSyntax true
+                            }
+                            else if(kata[i].equalsIgnoreCase("using")){
+                                i++;
+                                syntax = parserUsing(kata[i],csv,initials);
+                                tempSyntax=true;
                             }
                             i++; //list kata maju
                         }
@@ -80,7 +122,7 @@ public class PratubesSBD {
                                 if(!syntax){ //jika parserKolom mengembalikan false karna query salah
                                     break; //hentikan for karna dianggap query salah
                                 }
-                            }
+                           }
                         }
                         if(!tempSyntax){ //jika tidak ditemukan join 
                             syntax = false; //query salah
@@ -89,8 +131,28 @@ public class PratubesSBD {
                 }
             }
         }
-        
         return syntax;
+    }
+    
+    static boolean parserUsing(String kata, List<List<String>> csv, List<String> inisial){
+        kata = kata.substring(1, kata.length()-1);
+        int[] check;
+        int jmlcheck=0;
+        
+        for(int i=0;i<inisial.size();i=i+2){
+            int a = 0;
+            for(int l=0;l<csv.size();l++){
+                a = csv.get(l).indexOf(kata);
+                if(a==1){
+                    jmlcheck++;
+                    break;
+                }
+            }
+        }
+        
+        if(jmlcheck==2)return true;
+        
+        return false;
     }
     
     static boolean parserKolom(String kata, List<List<String>> csv, List<String> inisial){ //dipakai kalo dipanggil nama kolomnya
@@ -180,38 +242,65 @@ public class PratubesSBD {
         }
     }
     
+    static void BFRandFanOutRasio(List<List<String>> csv){
+        for(int i = 1;i<csv.size();i++){
+            long bfr = Math.round(Float.parseFloat(csv.get(0).get(1)) / Float.parseFloat(csv.get(i).get(csv.get(i).size()-3)));
+            double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size()-1))+Float.parseFloat(csv.get(0).get(0))));
+            // block / poiniter 
+            System.out.println("BFR " + csv.get(i).get(0) + " : " + bfr);
+            // FOR floor(B/(V+P)
+            System.out.println("Fan Out Rasio " + csv.get(i).get(0) + " : " + FOR);
+        }
+    }
+    
     static List bacafile() throws FileNotFoundException, IOException{
         BufferedReader reader;
         File file = new File("Data Dictionary.txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
-        
-        String st;
+        String st = br.readLine();
         List<List<String>> b = new ArrayList();
         List<String> a = new ArrayList();
+        List<String> tempList = new ArrayList();
+        List<String> pointerandblock = new ArrayList();
+        String temp = "";
+        a = Arrays.asList(st.split(";"));
+        for (String content : a){
+            tempList = Arrays.asList(content.split(" "));
+            pointerandblock.add(tempList.get(1).replace("#", ""));
+        }
+        b.add(pointerandblock);
         while ((st = br.readLine()) != null){
-            String temp = "";
+            temp = "";
             a = Arrays.asList(st.split(";"));
             temp = a.get(a.size()-1);
             temp = temp.replace(temp, temp.substring(0, temp.length()-1));
+
             a.set(a.size()-1, temp);
+            
+            for (int i=0;i<a.size();i++){
+                tempList = Arrays.asList(a.get(i).split(" "));
+                if (tempList.size()==2) a.set(i, tempList.get(1));
+            }     
             b.add(a);
         }
         return b;
     }
     
     public static void main(String[] args) throws IOException {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Query: ");
-        String input = sc.nextLine();
-        String[] syntax = input.split(" ");
-        List<String> initials = new ArrayList();
-        List<List<String>> csv = new ArrayList();
-        csv = bacafile();
+//        Scanner sc = new Scanner(System.in);
+//        System.out.println("Query: ");
+//        menu();
+        List<List<String>> csv = bacafile();
+        BFRandFanOutRasio(csv);
 
-        if(parserQuery(syntax, initials)){
-            printSpesifikasi(initials);
-        } else {
-            System.out.println("\nSyntax Error");
-        }
+//        String input = sc.nextLine();
+//        String[] syntax = input.split(" ");
+//        List<String> initials = new ArrayList();
+//
+//        if(parserQuery(syntax, initials)){
+//            printSpesifikasi(initials);
+//        } else {
+//            System.out.println("\nSyntax Error");
+//        }
     }
 }
