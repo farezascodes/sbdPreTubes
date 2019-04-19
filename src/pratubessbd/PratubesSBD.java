@@ -7,6 +7,8 @@ import java.util.*;
 public class PratubesSBD {
 
     static List<List<String>> usedData = new ArrayList();
+    static List<List<String>> anotatedQEP = new ArrayList();
+    static String input;
 
     static void menu() {
         Scanner choose = new Scanner(System.in);
@@ -41,10 +43,9 @@ public class PratubesSBD {
         choose.close();
     }
 
-    static boolean parserQuery(String[] kata, List<String> initials) throws IOException {
-        List<List<String>> csv = new ArrayList();
+    static boolean parserQuery(String[] kata, List<String> initials, List<List<String>> csv) throws IOException {
+
         boolean syntax = false;
-        csv = bacafile();//baca file database
         if (kata.length > 3) {
             if (kata[kata.length - 1].charAt(kata[kata.length - 1].length() - 1) == ';') { // cek untuk ';' diakhir
                 kata[kata.length - 1] = kata[kata.length - 1].substring(0, kata[kata.length - 1].length() - 1); // menghilangkan indeks terakhir pada kata[kata.length-1]
@@ -55,9 +56,16 @@ public class PratubesSBD {
                         boolean tempSyntax = true; // digunakan ketika membaca join
                         boolean initialsCheck = false; //expect selanjutnya adalah inisial tabel, contoh:"mahasiswa m"
                         boolean joinState = false; //untuk cek kalo kata selanjutnya "join"
+                        boolean whereState = false;
+                        boolean join = false;
+                        boolean where = false;
                         while (i < kata.length && syntax) { //loop kata sepanjang i
-                            if (!kata[i].equalsIgnoreCase("join") && !kata[i].equalsIgnoreCase("on") && !kata[i].equalsIgnoreCase("using")) { //cek kalo bukan join atau on
-                                if (initialsCheck == true) { //jika ditemukan inisial tabel setelah nama tabel
+                            if (!kata[i].equalsIgnoreCase("join") && !kata[i].equalsIgnoreCase("on") && !kata[i].equalsIgnoreCase("using") && !kata[i].equalsIgnoreCase("where")) { //cek kalo bukan join atau on
+                                if (whereState) {
+                                    String[] kataWhere = Arrays.copyOfRange(kata, i, kata.length);
+                                    syntax = parserWhere(csv, initials, kataWhere);
+                                    i = kata.length - 1;
+                                } else if (initialsCheck == true) { //jika ditemukan inisial tabel setelah nama tabel
                                     initials.add(kata[i]); //tambahkan ke list initial
                                     initialsCheck = false; //kembalikan ke value semula 
 
@@ -65,7 +73,6 @@ public class PratubesSBD {
                                     syntax = parserTabel(kata[i], csv); //lakukan parserTabel yang mengembalikan boolean
                                     initialsCheck = true; //telah dilakukan parserTable maka initial check diisi true
                                     initials.add(kata[i]); //tambahkan nama tabel ke list initial
-
                                     if (kata.length - 1 == i) {
                                         initials.add(""); //kalau inisial tabel tidak ada tambahkan string kosong 
                                     }
@@ -80,6 +87,7 @@ public class PratubesSBD {
                                 }
                                 joinState = true;
                                 tempSyntax = false; //jika tidak ditemukan join maka tempSyntax false
+                                join = true;
                             } else if (kata[i].equalsIgnoreCase("on")) { //jika kata ke-i merupakan "on"
                                 if (initialsCheck == true) { //jika ditemukan inisial tabel setelah nama tabel
                                     initials.add(" "); //tambahkan whitespace ke list initial
@@ -89,7 +97,7 @@ public class PratubesSBD {
                                 }
                                 i++; //list kata maju
                                 if (i < kata.length) { //jika belum mencapai indeks terakhir dari list kata
-                                    for (int j = 0; j < initials.size() / 2; j++) { //looping untuk mendapat nama tabel
+                                    for (int j = 0; j < initials.size() / 2 + 1; j++) { //looping untuk mendapat nama tabel
                                         List<String> templist = new ArrayList();
                                         usedData.add(templist); //append templist ke usedData untuk print
                                     }
@@ -105,11 +113,14 @@ public class PratubesSBD {
                                 i++;
                                 syntax = parserUsing(kata[i], csv, initials);
                                 tempSyntax = true;
+                            } else if (kata[i].equalsIgnoreCase("where")) {
+                                whereState = true;
+                                where = true;
                             }
                             i++; //list kata maju
                         }
                         if (syntax) { //jika syntax masih benar
-                            for (i = 0; i < initials.size() / 2; i++) { //loop sebanyak size dari list initial dibagi 2 untuk mendapat nama tabel
+                            for (i = 1; i <= initials.size() + 1 / 2; i++) { //loop sebanyak size dari list initial dibagi 2 untuk mendapat nama tabel
                                 List<String> templist = new ArrayList();
                                 usedData.add(templist);
                             }
@@ -132,9 +143,28 @@ public class PratubesSBD {
         return syntax;
     }
 
+
+    static boolean parserWhere(List<List<String>> csv, List<String> inisial, String[] kata) {
+        List<String> temp = new ArrayList();
+        for (int j = 0; j < inisial.size(); j = j + 2) {
+            for (int k = 0; k < csv.size(); k++) {
+                if (csv.get(k).get(0).equals(inisial.get(j))) {
+                    if (csv.get(k).indexOf(kata[0]) != -1) {
+                        for (int i = 0; i < kata.length; i++) {
+                            temp.add(kata[i]);
+                        }
+                        usedData.add(temp);
+                        return true;
+                    }
+                }
+            }
+        }
+        System.out.println("loh kok");
+        return false;
+    }
+
     static boolean parserUsing(String kata, List<List<String>> csv, List<String> inisial) {
         kata = kata.substring(1, kata.length() - 1);
-        int[] check;
         int jmlcheck = 0;
 
         for (int i = 0; i < inisial.size(); i = i + 2) {
@@ -147,7 +177,6 @@ public class PratubesSBD {
                 }
             }
         }
-
         if (jmlcheck == 2) {
             return true;
         }
@@ -158,7 +187,7 @@ public class PratubesSBD {
     static boolean parserKolom(String kata, List<List<String>> csv, List<String> inisial) { //dipakai kalo dipanggil nama kolomnya
         String[] temp;
         temp = kata.split("\\.");
-        boolean check = true;
+        boolean check = false;
         if (temp.length == 2) {
             int j = inisial.indexOf(temp[0]);
             if (j == -1) {
@@ -166,11 +195,9 @@ public class PratubesSBD {
             }
             for (int k = 0; k < csv.size(); k++) {
                 if (csv.get(k).get(0).equals(inisial.get(j - 1))) {
-                    if (csv.get(k).indexOf(temp[1]) == -1) {
-                        return false;
-                    } else {
-                        usedData.get((j - 1) / 2).add(temp[1]);
-                        return true;
+                    if (csv.get(k).indexOf(temp[1]) != -1) {
+                        usedData.get((j - 1) / 2 + 1).add(temp[1]);
+                        check = true;
                     }
                 }
             }
@@ -178,17 +205,18 @@ public class PratubesSBD {
             for (int j = 0; j < inisial.size(); j = j + 2) {
                 for (int k = 0; k < csv.size(); k++) {
                     if (csv.get(k).get(0).equals(inisial.get(j))) {
-                        if (csv.get(k).indexOf(temp[0]) == -1) {
-                            return false;
-                        } else {
-                            usedData.get((j) / 2).add(temp[0]);
-                            return true;
+                        if (csv.get(k).indexOf(temp[0]) != -1) {
+                            usedData.get(((j) / 2) + 1).add(temp[0]);
+                            check = true;
                         }
                     }
                 }
             }
         }
         //    }
+        if (check) {
+            return true;
+        }
         return false;
     }
 
@@ -229,16 +257,39 @@ public class PratubesSBD {
         return false;
     }
 
+
+    static void QEPtoText(int optimal) {
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(new File(
+                    "new.txt"), true));
+            for (int j = 0; j < anotatedQEP.get(optimal).size(); j++) {
+                bw.write(anotatedQEP.get(optimal).get(j));
+                bw.newLine();
+            }
+            bw.newLine();
+            bw.close();
+        } catch (Exception e) {
+        }
+    }
+    
+    static void readQEP() throws IOException{
+        File file = new File("new.txt");
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        String st = br.readLine();
+        while ((st = br.readLine()) != null) {
+            System.out.println(st);
+        }
+    }
     static void printSpesifikasi(List<String> initials) {
         // print apa yang soal butuhkan
         for (int i = 0; i < initials.size(); i = i + 2) {
             System.out.println("\nTabel : " + initials.get(i));
             System.out.print("Atribut: ");
-            for (int j = 0; j < usedData.get(i / 2).size(); j++) {
-                System.out.print(usedData.get(i / 2).get(j) + ", ");
+            for (int j = 0; j < usedData.get(i / 2 + 1).size(); j++) {
+                System.out.print(usedData.get(i / 2 + 1).get(j) + ", ");
             }
-            System.out.println("");
         }
+        System.out.println("\n");
     }
 
     static void BFRandFanOutRasio(List<List<String>> csv) {
@@ -290,12 +341,181 @@ public class PratubesSBD {
                 }
             }
         } else {
-            System.out.println("Tipe data inputan tidak sesuai");
+            System.out.println("Tipe data inputan tidak sesuai");}}
+    static void QEPandCost(List<String> inisial, List<List<String>> csv) {
+        boolean onkey = false;
+        boolean QEPJoin = false;
+
+        List<Double> cost = new ArrayList();
+        String selection;
+        String projection;
+        String join;
+        String table;
+        String strCost;
+
+        if (inisial.size() < 3) {
+            // ini kalau query tanpa join
+            int tabel = -1;
+            for (int it = 1; it < csv.size(); it++) {
+                if (inisial.get(0).equalsIgnoreCase(csv.get(it).get(0))) {
+                    tabel = it;
+                }
+            }
+            if (tabel > -1) {
+                double Br = Math.ceil(Math.ceil(Float.parseFloat(csv.get(tabel).get(csv.get(tabel).size() - 3)) * Float.parseFloat(csv.get(tabel).get(csv.get(tabel).size() - 2))) / Float.parseFloat(csv.get(0).get(1)));
+                for (int i = 1; i <= 2; i++) {
+                    selection = "SELECTION ";
+                    projection = "PROJECTION ";
+                    table = "";
+                    strCost = "Cost: ";
+                    List<String> tempAnotatedQEP = new ArrayList();
+                    System.out.println("QEP #" + i);
+                    System.out.print("PROJECTION ");
+                    for (int j = 0; j < usedData.get(1).size(); j++) {
+                        projection += usedData.get(1).get(j) + ", ";
+                        System.out.print(usedData.get(1).get(j) + ", ");
+                    }
+                    System.out.print("-- on the fly");
+                    projection += "-- on the fly";
+                    boolean where = false;
+                    if (!usedData.get(0).isEmpty()) {
+                        where = true;
+                        selection += usedData.get(0).get(0) + usedData.get(0).get(1) + usedData.get(0).get(2) + " -- A" + i;
+                        System.out.print("\nSELECTION " + usedData.get(0).get(0) + usedData.get(0).get(1) + usedData.get(0).get(2));
+                        System.out.print(" -- A" + i);
+                    }
+                    if (i == 1 && !usedData.get(0).isEmpty()) {
+                        for (int j = 1; j < csv.size(); j++) {
+                            if (usedData.get(0).get(0).equals(csv.get(j).get(1))) {
+                                selection += " key";
+                                System.out.print(" key");
+                                onkey = true;
+                            }
+                        }
+                    }
+                    table = inisial.get(0);
+                    System.out.println("\n" + inisial.get(0));
+                    System.out.print("Cost: ");
+                    if (i == 1) {
+                        if (onkey) {
+                            // br/2
+                            cost.add(Math.ceil(Br / 2));
+                            strCost += Double.toString(Math.ceil(Br / 2));
+                        } else if (!onkey) {
+                            // br
+                            cost.add(Br);
+                            strCost += Double.toString(Math.ceil(Br / 2));
+                        }
+                    }
+                    if (i == 2) {
+                        double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0))));
+                        double heigth = Math.floor(Math.log10(Float.parseFloat(csv.get(0).get(1)) / Math.log10(FOR)));
+                        cost.add(heigth + 1);
+                        strCost += Double.toString(heigth + 1);
+                    }
+                    strCost += " Blocks";
+                    System.out.print(cost.get(i - 1) + " Blocks\n");
+                    System.out.println("");
+
+                    tempAnotatedQEP.add(input);
+                    tempAnotatedQEP.add(projection);
+                    if (where) {
+                        tempAnotatedQEP.add(selection);
+                    }
+                    tempAnotatedQEP.add(table);
+                    tempAnotatedQEP.add(strCost);
+                    anotatedQEP.add(tempAnotatedQEP);
+                }
+            }
+        } else if (usedData.get(0).isEmpty() && inisial.size() > 2) {
+            List<Integer> usedTable = new ArrayList();
+            List<String> alreadyPrinted = new ArrayList();
+            
+            for (int h = 0; h < 3; h = h + 2) {
+                for (int i = 1; i < csv.size(); i++) {
+                    if (inisial.get(h).equalsIgnoreCase(csv.get(i).get(0))) {
+                        usedTable.add(i);
+                    }
+                }
+            }
+            for (int i = 1; i <= 2; i++) {
+                List<String> tempAnotatedQEP = new ArrayList();
+                projection = "PROJECTION ";
+                join = "JOIN ";
+                table = "";
+                strCost = "Cost: ";
+
+                System.out.println("QEP #" + i);
+                System.out.print("PROJECTION ");
+                if (i == 1) {
+                    for (int j = 1; j <= 2; j++) {
+                        for (int k = 0; k < usedData.get(j).size(); k++) {
+                            boolean found = false;
+                            for (int l = 0; l < alreadyPrinted.size(); l++) {
+                                if (alreadyPrinted.get(l).equals(usedData.get(j).get(k))) {
+                                    found = true;
+                                }
+                            }
+                            if (!found) {
+                                System.out.print(usedData.get(j).get(k) + ", ");
+                                projection += usedData.get(j).get(k) + ", ";
+                                alreadyPrinted.add(usedData.get(j).get(k));
+                            }
+                        }
+                    }
+                } else {
+                    for (int j = 0; j < alreadyPrinted.size(); j++) {
+                        System.out.print(alreadyPrinted.get(j) + ", ");
+                    }
+                }
+                projection += "-- on the fly";
+                System.out.print("-- on the fly \n");
+                System.out.print("JOIN ");
+                join += csv.get(usedTable.get(0)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " = ";
+                System.out.print(csv.get(usedTable.get(0)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " = ");
+                join += csv.get(usedTable.get(1)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " -- BNLJ";
+                System.out.print(csv.get(usedTable.get(1)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " -- BNLJ \n");
+
+                if (i == 2) {
+                    int temp = usedTable.get(0);
+                    usedTable.set(0, usedTable.get(1));
+                    usedTable.set(1, temp);
+                }
+                for (int j = 0; j < usedTable.size(); j++) {
+                    System.out.print(csv.get(usedTable.get(j)).get(0) + "    ");
+                    table += csv.get(usedTable.get(j)).get(0) + "    ";
+                }
+                System.out.print("\nCost: ");
+                double Br = Math.ceil(Math.ceil(Float.parseFloat(csv.get(usedTable.get(0)).get(csv.get(usedTable.get(0)).size() - 3)) * Float.parseFloat(csv.get(usedTable.get(0)).get(csv.get(usedTable.get(0)).size() - 2))) / Float.parseFloat(csv.get(0).get(1)));
+                double Bs = Math.ceil(Math.ceil(Float.parseFloat(csv.get(usedTable.get(1)).get(csv.get(usedTable.get(1)).size() - 3)) * Float.parseFloat(csv.get(usedTable.get(1)).get(csv.get(usedTable.get(1)).size() - 2))) / Float.parseFloat(csv.get(0).get(1)));
+                cost.add(Br * Bs + Br);
+                strCost += Double.toString(Br * Bs + Br) + " Blocks";
+                System.out.print(cost.get(cost.size() - 1) + " Blocks\n");
+                System.out.println("");
+                tempAnotatedQEP.add(input);
+                tempAnotatedQEP.add(projection);
+                tempAnotatedQEP.add(join);
+                tempAnotatedQEP.add(table);
+                tempAnotatedQEP.add(strCost);
+                anotatedQEP.add(tempAnotatedQEP);
+            }
+        }
+        System.out.println(anotatedQEP);
+        if (!cost.isEmpty()) {
+            int smallest;
+            if (cost.get(0) < cost.get(1)) {
+                smallest = 0;
+            } else {
+                smallest = 1;
+            }
+            System.out.println("QEP Optimal : QEP#" + (smallest + 1));
+            QEPtoText(1);
+        } else {
+            System.out.println("\nQEP belum bisa dideteksi");
         }
     }
 
     static List bacafile() throws FileNotFoundException, IOException {
-        BufferedReader reader;
         File file = new File("Data Dictionary.txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
         String st = br.readLine();
@@ -315,9 +535,7 @@ public class PratubesSBD {
             a = Arrays.asList(st.split(";"));
             temp = a.get(a.size() - 1);
             temp = temp.replace(temp, temp.substring(0, temp.length() - 1));
-
             a.set(a.size() - 1, temp);
-
             for (int i = 0; i < a.size(); i++) {
                 tempList = Arrays.asList(a.get(i).split(" "));
                 if (tempList.size() == 2) {
@@ -330,23 +548,21 @@ public class PratubesSBD {
     }
 
     public static void main(String[] args) throws IOException {
+//        List<List<String>> csv = new ArrayList();
+//        csv = bacafile();//baca file database
 //        Scanner sc = new Scanner(System.in);
 //        System.out.println("Query: ");
-//        menu();
-//System.out.println("dsdsds");
-        List<List<String>> csv = bacafile();
-        System.out.println(csv);
-//        jumBlock(csv);
-        BFRandFanOutRasio(csv);
-
-//        String input = sc.nextLine();
+//
+//        input = sc.nextLine();
 //        String[] syntax = input.split(" ");
 //        List<String> initials = new ArrayList();
 //
-//        if(parserQuery(syntax, initials)){
+//        if (parserQuery(syntax, initials, csv)) {
 //            printSpesifikasi(initials);
+//            QEPandCost(initials, csv);
 //        } else {
 //            System.out.println("\nSyntax Error");
 //        }
+//        System.out.println("");
     }
 }
