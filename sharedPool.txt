@@ -1,0 +1,16 @@
+
+
+select id_dok from dokter where id_dok = 21;
+PROJECTION id_dok, -- on the fly
+SELECTION id_dok=21 -- A2
+dokter
+Cost: 4.0 Blocks
+
+
+
+select harga,id_pasien from konsultasi join pasien using (id_pasien);
+PROJECTION harga, id_pasien, -- on the fly
+JOIN konsultasi.id_konsul = pasien.id_konsul -- BNLJ
+konsultasi    pasien    
+Cost: 20900.0 Blocks
+

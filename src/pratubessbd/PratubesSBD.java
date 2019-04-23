@@ -26,14 +26,11 @@ public class PratubesSBD {
             System.out.println("");
             if ("1".equals(choice)) {
                 BFRandFanOutRasio(csv);
-            }
-            else if ("2".equals(choice)) {
+            } else if ("2".equals(choice)) {
                 jumBlock(csv);
-            }
-            else if ("3".equals(choice)) {
+            } else if ("3".equals(choice)) {
                 cariRecord(csv);
-            }
-            else if ("4".equals(choice)) {
+            } else if ("4".equals(choice)) {
                 Scanner sc = new Scanner(System.in);
                 System.out.println("Query: ");
 
@@ -46,15 +43,12 @@ public class PratubesSBD {
                 } else {
                     System.out.println("\nSyntax Error");
                 }
-            }
-            else if ("5".equals(choice)) {
+            } else if ("5".equals(choice)) {
                 readQEP();
-            
-            }
-            else if ("0".equals(choice)){
+
+            } else if ("0".equals(choice)) {
                 System.out.println("terima kasih");
-            }
-            else {
+            } else {
                 System.out.println("input invalid");
             }
             System.out.println("Press \"ENTER\" to continue...");
@@ -301,6 +295,7 @@ public class PratubesSBD {
         String st = br.readLine();
         while ((st = br.readLine()) != null) {
             System.out.println(st);
+
         }
     }
 
@@ -332,7 +327,7 @@ public class PratubesSBD {
             double jumRekord = Float.parseFloat(csv.get(i).get(csv.get(i).size() - 2));
             double rekord = Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3));
             double jumBlok = Math.ceil((jumRekord * rekord) / Float.parseFloat(csv.get(0).get(1))); // (jumlah rekord * size rekord)/block size= banyak blok tersedia
- 
+
             double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0)))); //fan-out
             double jumIndex = Math.ceil(jumBlok / FOR); // jumlah blok / (pointer size+primary key size) = banyak rekord yang disimpan di index
 
@@ -348,28 +343,42 @@ public class PratubesSBD {
         System.out.println(">> Nama tabel :");
         String tabel = cari.next();
 //        if (tabel.matches("[a-zA-Z_]")) {
-            for (int i = 1; i < csv.size(); i++) {
-                if (tabel.equalsIgnoreCase(csv.get(i).get(0))) {
-                    double jumRekord = Float.parseFloat(csv.get(i).get(csv.get(i).size() - 2));
-                    double rekord = Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3));
-                    double jumBlok = Math.ceil((jumRekord * rekord) / Float.parseFloat(csv.get(0).get(1))); // (jumlah rekord * size rekord)/block size = banyak blok tersedia
-                    double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0)))); //fan-out ratio
+        for (int i = 1; i < csv.size(); i++) {
+            if (tabel.equalsIgnoreCase(csv.get(i).get(0))) {
+                double jumRekord = Float.parseFloat(csv.get(i).get(csv.get(i).size() - 2));
+                double rekord = Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3));
+                double jumBlok = Math.ceil((jumRekord * rekord) / Float.parseFloat(csv.get(0).get(1))); // (jumlah rekord * size rekord)/block size = banyak blok tersedia
+                double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0)))); //fan-out ratio
 
-                    double notIndexed = Math.ceil(hasil / (Math.ceil(Float.parseFloat(csv.get(0).get(1)) / Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3)))));
-                    double indexed = Math.ceil(notIndexed / FOR) + 1; // banyak blok yang diakses lewat index (jumlah blok di main/fan-out)
+                double notIndexed = Math.ceil(hasil / (Math.ceil(Float.parseFloat(csv.get(0).get(1)) / Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3)))));
+                double indexed = Math.ceil(notIndexed / FOR) + 1; // banyak blok yang diakses lewat index (jumlah blok di main/fan-out)
 
-                    System.out.println("Menggunakan indeks, jumlah blok yang diakses: " + indexed);
-                    System.out.println("Tanpa indeks, jumlah blok yang diakses: " + notIndexed);
-                }
+                System.out.println("Menggunakan indeks, jumlah blok yang diakses: " + indexed);
+                System.out.println("Tanpa indeks, jumlah blok yang diakses: " + notIndexed);
             }
+        }
 //        } else {
 //            System.out.println("Tipe data inputan tidak sesuai");
-        }
-    
+    }
 
-    static void QEPandCost(List<String> inisial, List<List<String>> csv) {
+    static boolean CheckSharedPool(String query) throws FileNotFoundException, IOException {
+        File file = new File("sharedPool.txt");
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        String st;
+        while ((st = br.readLine()) != null) {
+            if (query.equals(st)) {
+                System.out.println("QEP from Shared Pool: ");
+                while (!(st = br.readLine()).equals("")) {
+                    System.out.println(st);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static void QEPandCost(List<String> inisial, List<List<String>> csv) throws IOException {
         boolean onkey = false;
-        boolean QEPJoin = false;
 
         List<Double> cost = new ArrayList();
         String selection;
@@ -378,165 +387,173 @@ public class PratubesSBD {
         String table;
         String strCost;
 
-        if (inisial.size() < 3) {
-            // ini kalau query tanpa join
-            int tabel = -1;
-            for (int it = 1; it < csv.size(); it++) {
-                if (inisial.get(0).equalsIgnoreCase(csv.get(it).get(0))) {
-                    tabel = it;
+        if (CheckSharedPool(input)) {
+            System.out.println("");
+        } else {
+            if (inisial.size() < 3) {
+                // ini kalau query tanpa join
+                int tabel = -1;
+                for (int it = 1; it < csv.size(); it++) {
+                    if (inisial.get(0).equalsIgnoreCase(csv.get(it).get(0))) {
+                        tabel = it;
+                    }
                 }
-            }
-            if (tabel > -1) {
-                double Br = Math.ceil(Math.ceil(Float.parseFloat(csv.get(tabel).get(csv.get(tabel).size() - 3)) * Float.parseFloat(csv.get(tabel).get(csv.get(tabel).size() - 2))) / Float.parseFloat(csv.get(0).get(1)));
-                for (int i = 1; i <= 2; i++) {
-                    selection = "SELECTION ";
-                    projection = "PROJECTION ";
-                    table = "";
-                    strCost = "Cost: ";
-                    List<String> tempAnotatedQEP = new ArrayList();
-                    System.out.println("QEP #" + i);
-                    System.out.print("PROJECTION ");
-                    for (int j = 0; j < usedData.get(1).size(); j++) {
-                        projection += usedData.get(1).get(j) + ", ";
-                        System.out.print(usedData.get(1).get(j) + ", ");
-                    }
-                    System.out.print("-- on the fly");
-                    projection += "-- on the fly";
-                    boolean where = false;
-                    if (!usedData.get(0).isEmpty()) {
-                        where = true;
-                        selection += usedData.get(0).get(0) + usedData.get(0).get(1) + usedData.get(0).get(2) + " -- A" + i;
-                        System.out.print("\nSELECTION " + usedData.get(0).get(0) + usedData.get(0).get(1) + usedData.get(0).get(2));
-                        System.out.print(" -- A" + i);
-                    }
-                    if (i == 1 && !usedData.get(0).isEmpty()) {
-                        for (int j = 1; j < csv.size(); j++) {
-                            if (usedData.get(0).get(0).equals(csv.get(j).get(1))) {
-                                selection += " key";
-                                System.out.print(" key");
-                                onkey = true;
+                if (tabel > -1) {
+                    double Br = Math.ceil(Math.ceil(Float.parseFloat(csv.get(tabel).get(csv.get(tabel).size() - 3)) * Float.parseFloat(csv.get(tabel).get(csv.get(tabel).size() - 2))) / Float.parseFloat(csv.get(0).get(1)));
+                    for (int i = 1; i <= 2; i++) {
+                        selection = "SELECTION ";
+                        projection = "PROJECTION ";
+                        table = "";
+                        strCost = "Cost: ";
+                        List<String> tempAnotatedQEP = new ArrayList();
+                        System.out.println("QEP #" + i);
+                        System.out.print("PROJECTION ");
+                        for (int j = 0; j < usedData.get(1).size(); j++) {
+                            projection += usedData.get(1).get(j) + ", ";
+                            System.out.print(usedData.get(1).get(j) + ", ");
+                        }
+                        System.out.print("-- on the fly");
+                        projection += "-- on the fly";
+                        boolean where = false;
+                        if (!usedData.get(0).isEmpty()) {
+                            where = true;
+                            selection += usedData.get(0).get(0) + usedData.get(0).get(1) + usedData.get(0).get(2) + " -- A" + i;
+                            System.out.print("\nSELECTION " + usedData.get(0).get(0) + usedData.get(0).get(1) + usedData.get(0).get(2));
+                            System.out.print(" -- A" + i);
+                        }
+                        if (i == 1 && !usedData.get(0).isEmpty()) {
+                            for (int j = 1; j < csv.size(); j++) {
+                                if (usedData.get(0).get(0).equals(csv.get(j).get(1))) {
+                                    selection += " key";
+                                    System.out.print(" key");
+                                    onkey = true;
+                                }
                             }
                         }
+                        table = inisial.get(0);
+                        System.out.println("\n" + inisial.get(0));
+                        System.out.print("Cost: ");
+                        if (i == 1) {
+                            if (onkey) {
+                                // br/2
+                                cost.add(Math.ceil(Br / 2));
+                                strCost += Double.toString(Math.ceil(Br / 2));
+                            } else if (!onkey) {
+                                // br
+                                cost.add(Br);
+                                strCost += Double.toString(Math.ceil(Br / 2));
+                            }
+                        }
+                        if (i == 2) {
+                            double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0))));
+                            double heigth = Math.floor(Math.log10(Float.parseFloat(csv.get(0).get(1)) / Math.log10(FOR)));
+                            cost.add(heigth + 1);
+                            strCost += Double.toString(heigth + 1);
+                        }
+                        strCost += " Blocks";
+                        System.out.print(cost.get(i - 1) + " Blocks\n");
+                        System.out.println("");
+
+                        tempAnotatedQEP.add(input);
+                        tempAnotatedQEP.add(projection);
+                        if (where) {
+                            tempAnotatedQEP.add(selection);
+                        }
+                        tempAnotatedQEP.add(table);
+                        tempAnotatedQEP.add(strCost);
+                        anotatedQEP.add(tempAnotatedQEP);
                     }
-                    table = inisial.get(0);
-                    System.out.println("\n" + inisial.get(0));
-                    System.out.print("Cost: ");
-                    if (i == 1) {
-                        if (onkey) {
-                            // br/2
-                            cost.add(Math.ceil(Br / 2));
-                            strCost += Double.toString(Math.ceil(Br / 2));
-                        } else if (!onkey) {
-                            // br
-                            cost.add(Br);
-                            strCost += Double.toString(Math.ceil(Br / 2));
+                }
+            } else if (usedData.get(0).isEmpty() && inisial.size() > 2) {
+                List<Integer> usedTable = new ArrayList();
+                List<String> alreadyPrinted = new ArrayList();
+
+                for (int h = 0; h < 3; h = h + 2) {
+                    for (int i = 1; i < csv.size(); i++) {
+                        if (inisial.get(h).equalsIgnoreCase(csv.get(i).get(0))) {
+                            usedTable.add(i);
                         }
                     }
-                    if (i == 2) {
-                        double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0))));
-                        double heigth = Math.floor(Math.log10(Float.parseFloat(csv.get(0).get(1)) / Math.log10(FOR)));
-                        cost.add(heigth + 1);
-                        strCost += Double.toString(heigth + 1);
-                    }
-                    strCost += " Blocks";
-                    System.out.print(cost.get(i - 1) + " Blocks\n");
-                    System.out.println("");
+                }
+                for (int i = 1; i <= 2; i++) {
+                    List<String> tempAnotatedQEP = new ArrayList();
+                    projection = "PROJECTION ";
+                    join = "JOIN ";
+                    table = "";
+                    strCost = "Cost: ";
 
+                    System.out.println("QEP #" + i);
+                    System.out.print("PROJECTION ");
+                    if (i == 1) {
+                        for (int j = 1; j <= 2; j++) {
+                            for (int k = 0; k < usedData.get(j).size(); k++) {
+                                boolean found = false;
+                                for (int l = 0; l < alreadyPrinted.size(); l++) {
+                                    if (alreadyPrinted.get(l).equals(usedData.get(j).get(k))) {
+                                        found = true;
+                                    }
+                                }
+                                if (!found) {
+                                    System.out.print(usedData.get(j).get(k) + ", ");
+                                    projection += usedData.get(j).get(k) + ", ";
+                                    alreadyPrinted.add(usedData.get(j).get(k));
+                                }
+                            }
+                        }
+                    } else {
+                        for (int j = 0; j < alreadyPrinted.size(); j++) {
+                            System.out.print(alreadyPrinted.get(j) + ", ");
+                        }
+                    }
+                    projection += "-- on the fly";
+                    System.out.print("-- on the fly \n");
+                    System.out.print("JOIN ");
+                    join += csv.get(usedTable.get(0)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " = ";
+                    System.out.print(csv.get(usedTable.get(0)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " = ");
+                    join += csv.get(usedTable.get(1)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " -- BNLJ";
+                    System.out.print(csv.get(usedTable.get(1)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " -- BNLJ \n");
+
+                    if (i == 2) {
+                        int temp = usedTable.get(0);
+                        usedTable.set(0, usedTable.get(1));
+                        usedTable.set(1, temp);
+                    }
+                    for (int j = 0; j < usedTable.size(); j++) {
+                        System.out.print(csv.get(usedTable.get(j)).get(0) + "    ");
+                        table += csv.get(usedTable.get(j)).get(0) + "    ";
+                    }
+                    System.out.print("\nCost: ");
+                    double Br = Math.ceil(Math.ceil(Float.parseFloat(csv.get(usedTable.get(0)).get(csv.get(usedTable.get(0)).size() - 3)) * Float.parseFloat(csv.get(usedTable.get(0)).get(csv.get(usedTable.get(0)).size() - 2))) / Float.parseFloat(csv.get(0).get(1)));
+                    double Bs = Math.ceil(Math.ceil(Float.parseFloat(csv.get(usedTable.get(1)).get(csv.get(usedTable.get(1)).size() - 3)) * Float.parseFloat(csv.get(usedTable.get(1)).get(csv.get(usedTable.get(1)).size() - 2))) / Float.parseFloat(csv.get(0).get(1)));
+                    cost.add(Br * Bs + Br);
+                    strCost += Double.toString(Br * Bs + Br) + " Blocks";
+                    System.out.print(cost.get(cost.size() - 1) + " Blocks\n");
+                    System.out.println("");
                     tempAnotatedQEP.add(input);
                     tempAnotatedQEP.add(projection);
-                    if (where) {
-                        tempAnotatedQEP.add(selection);
-                    }
+                    tempAnotatedQEP.add(join);
                     tempAnotatedQEP.add(table);
                     tempAnotatedQEP.add(strCost);
                     anotatedQEP.add(tempAnotatedQEP);
                 }
             }
-        } else if (usedData.get(0).isEmpty() && inisial.size() > 2) {
-            List<Integer> usedTable = new ArrayList();
-            List<String> alreadyPrinted = new ArrayList();
-
-            for (int h = 0; h < 3; h = h + 2) {
-                for (int i = 1; i < csv.size(); i++) {
-                    if (inisial.get(h).equalsIgnoreCase(csv.get(i).get(0))) {
-                        usedTable.add(i);
-                    }
-                }
-            }
-            for (int i = 1; i <= 2; i++) {
-                List<String> tempAnotatedQEP = new ArrayList();
-                projection = "PROJECTION ";
-                join = "JOIN ";
-                table = "";
-                strCost = "Cost: ";
-
-                System.out.println("QEP #" + i);
-                System.out.print("PROJECTION ");
-                if (i == 1) {
-                    for (int j = 1; j <= 2; j++) {
-                        for (int k = 0; k < usedData.get(j).size(); k++) {
-                            boolean found = false;
-                            for (int l = 0; l < alreadyPrinted.size(); l++) {
-                                if (alreadyPrinted.get(l).equals(usedData.get(j).get(k))) {
-                                    found = true;
-                                }
-                            }
-                            if (!found) {
-                                System.out.print(usedData.get(j).get(k) + ", ");
-                                projection += usedData.get(j).get(k) + ", ";
-                                alreadyPrinted.add(usedData.get(j).get(k));
-                            }
-                        }
-                    }
+            if (!cost.isEmpty()) {
+                int smallest;
+                if (cost.get(0) < cost.get(1)) {
+                    smallest = 0;
                 } else {
-                    for (int j = 0; j < alreadyPrinted.size(); j++) {
-                        System.out.print(alreadyPrinted.get(j) + ", ");
-                    }
+                    smallest = 1;
                 }
-                projection += "-- on the fly";
-                System.out.print("-- on the fly \n");
-                System.out.print("JOIN ");
-                join += csv.get(usedTable.get(0)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " = ";
-                System.out.print(csv.get(usedTable.get(0)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " = ");
-                join += csv.get(usedTable.get(1)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " -- BNLJ";
-                System.out.print(csv.get(usedTable.get(1)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " -- BNLJ \n");
-
-                if (i == 2) {
-                    int temp = usedTable.get(0);
-                    usedTable.set(0, usedTable.get(1));
-                    usedTable.set(1, temp);
-                }
-                for (int j = 0; j < usedTable.size(); j++) {
-                    System.out.print(csv.get(usedTable.get(j)).get(0) + "    ");
-                    table += csv.get(usedTable.get(j)).get(0) + "    ";
-                }
-                System.out.print("\nCost: ");
-                double Br = Math.ceil(Math.ceil(Float.parseFloat(csv.get(usedTable.get(0)).get(csv.get(usedTable.get(0)).size() - 3)) * Float.parseFloat(csv.get(usedTable.get(0)).get(csv.get(usedTable.get(0)).size() - 2))) / Float.parseFloat(csv.get(0).get(1)));
-                double Bs = Math.ceil(Math.ceil(Float.parseFloat(csv.get(usedTable.get(1)).get(csv.get(usedTable.get(1)).size() - 3)) * Float.parseFloat(csv.get(usedTable.get(1)).get(csv.get(usedTable.get(1)).size() - 2))) / Float.parseFloat(csv.get(0).get(1)));
-                cost.add(Br * Bs + Br);
-                strCost += Double.toString(Br * Bs + Br) + " Blocks";
-                System.out.print(cost.get(cost.size() - 1) + " Blocks\n");
-                System.out.println("");
-                tempAnotatedQEP.add(input);
-                tempAnotatedQEP.add(projection);
-                tempAnotatedQEP.add(join);
-                tempAnotatedQEP.add(table);
-                tempAnotatedQEP.add(strCost);
-                anotatedQEP.add(tempAnotatedQEP);
-            }
-        }
-        if (!cost.isEmpty()) {
-            int smallest;
-            if (cost.get(0) < cost.get(1)) {
-                smallest = 0;
+                System.out.println("QEP Optimal : QEP#" + (smallest + 1));
+                QEPtoText(smallest);
+                
             } else {
-                smallest = 1;
+                System.out.println(usedData);
+                System.out.println("\nQEP belum bisa dideteksi");
             }
-            System.out.println("QEP Optimal : QEP#" + (smallest + 1));
-            QEPtoText(1);
-        } else {
-            System.out.println("\nQEP belum bisa dideteksi");
         }
+        anotatedQEP.clear();
+        usedData.clear();
     }
 
     static List bacafile() throws FileNotFoundException, IOException {
