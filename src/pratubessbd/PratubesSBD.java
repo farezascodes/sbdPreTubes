@@ -10,7 +10,7 @@ public class PratubesSBD {
     static List<List<String>> anotatedQEP = new ArrayList();
     static String input;
 
-    static void menu() {
+    static void menu(List<List<String>> csv) throws IOException {
         Scanner choose = new Scanner(System.in);
         String choice = null;
         while (!"0".equals(choice)) {
@@ -21,23 +21,33 @@ public class PratubesSBD {
             System.out.println("4. QEP dan Cost");
             System.out.println("5. Shared Pool");
             choice = choose.nextLine();
-            System.out.println(!"0".equals(choice));
             if ("1".equals(choice)) {
-                System.out.println("satu");
+                BFRandFanOutRasio(csv);
             }
-            if ("2".equals(choice)) {
-                System.out.println("dua");
+            else if ("2".equals(choice)) {
+                jumBlock(csv);
             }
-            if ("3".equals(choice)) {
-                System.out.println("tiga");
+            else if ("3".equals(choice)) {
+                cariRecord(csv);
             }
-            if ("4".equals(choice)) {
-                System.out.println("empat");
-            }
-            if ("5".equals(choice)) {
-                System.out.println("lima");
-            } else {
+            else if ("4".equals(choice)) {
+                Scanner sc = new Scanner(System.in);
+                System.out.println("Query: ");
 
+                input = sc.nextLine();
+                String[] syntax = input.split(" ");
+                List<String> initials = new ArrayList();
+                if (parserQuery(syntax, initials, csv)) {
+                    printSpesifikasi(initials);
+                    QEPandCost(initials, csv);
+                } else {
+                    System.out.println("\nSyntax Error");
+                }
+            }
+            else if ("5".equals(choice)) {
+                readQEP();
+            } else {
+                System.out.println("input invalid");
             }
         }
         choose.close();
@@ -142,7 +152,6 @@ public class PratubesSBD {
         }
         return syntax;
     }
-
 
     static boolean parserWhere(List<List<String>> csv, List<String> inisial, String[] kata) {
         List<String> temp = new ArrayList();
@@ -257,11 +266,10 @@ public class PratubesSBD {
         return false;
     }
 
-
     static void QEPtoText(int optimal) {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(new File(
-                    "new.txt"), true));
+                    "sharedPool.txt"), true));
             for (int j = 0; j < anotatedQEP.get(optimal).size(); j++) {
                 bw.write(anotatedQEP.get(optimal).get(j));
                 bw.newLine();
@@ -271,15 +279,16 @@ public class PratubesSBD {
         } catch (Exception e) {
         }
     }
-    
-    static void readQEP() throws IOException{
-        File file = new File("new.txt");
+
+    static void readQEP() throws IOException {
+        File file = new File("sharedPool.txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
         String st = br.readLine();
         while ((st = br.readLine()) != null) {
             System.out.println(st);
         }
     }
+
     static void printSpesifikasi(List<String> initials) {
         // print apa yang soal butuhkan
         for (int i = 0; i < initials.size(); i = i + 2) {
@@ -308,7 +317,7 @@ public class PratubesSBD {
             double jumRekord = Float.parseFloat(csv.get(i).get(csv.get(i).size() - 2));
             double rekord = Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3));
             double jumBlok = Math.ceil((jumRekord * rekord) / Float.parseFloat(csv.get(0).get(1))); // (jumlah rekord * size rekord)/block size= banyak blok tersedia
-
+ 
             double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0)))); //fan-out
             double jumIndex = Math.ceil(jumBlok / FOR); // jumlah blok / (pointer size+primary key size) = banyak rekord yang disimpan di index
 
@@ -320,11 +329,10 @@ public class PratubesSBD {
     static void cariRecord(List<List<String>> csv) { //belom dikoreksi rumusnya, menu nomer 3
         Scanner cari = new Scanner(System.in);
         System.out.println(">> Cari rekord ke- :");
-        String hasil = cari.nextLine().replaceAll("\\s+", "");
+        int hasil = cari.nextInt();
         System.out.println(">> Nama tabel :");
-        String tabel = cari.nextLine().replaceAll("\\s+", "");
-
-        if (hasil.matches("[0-9]+") && tabel.matches("[a-zA-Z_]")) {
+        String tabel = cari.next();
+//        if (tabel.matches("[a-zA-Z_]")) {
             for (int i = 1; i < csv.size(); i++) {
                 if (tabel.equalsIgnoreCase(csv.get(i).get(0))) {
                     double jumRekord = Float.parseFloat(csv.get(i).get(csv.get(i).size() - 2));
@@ -332,16 +340,19 @@ public class PratubesSBD {
                     double jumBlok = Math.ceil((jumRekord * rekord) / Float.parseFloat(csv.get(0).get(1))); // (jumlah rekord * size rekord)/block size = banyak blok tersedia
                     double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0)))); //fan-out ratio
                     double jumIndex = Math.ceil(jumBlok / FOR); //banyak rekord di index
-                    
-                    double notIndexed = Math.ceil(Integer.parseInt(hasil) / (Math.ceil(Float.parseFloat(csv.get(0).get(1)) / Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3)))));
-                    double indexed = Math.ceil(notIndexed/jumIndex)+1; // banyak blok yang diakses lewat index (jumlah blok di main/fan-out)
-                    
-                    System.out.println("Menggunakan indeks, jumlah blok yang diakses: "+indexed);
-                    System.out.println("Tanpa indeks, jumlah blok yang diakses: "+notIndexed);
+
+                    double notIndexed = Math.ceil(hasil / (Math.ceil(Float.parseFloat(csv.get(0).get(1)) / Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3)))));
+                    double indexed = Math.ceil(notIndexed / FOR) + 1; // banyak blok yang diakses lewat index (jumlah blok di main/fan-out)
+
+                    System.out.println("Menggunakan indeks, jumlah blok yang diakses: " + indexed);
+                    System.out.println("Tanpa indeks, jumlah blok yang diakses: " + notIndexed);
                 }
             }
-        } else {
-            System.out.println("Tipe data inputan tidak sesuai");}}
+//        } else {
+//            System.out.println("Tipe data inputan tidak sesuai");
+        }
+    
+
     static void QEPandCost(List<String> inisial, List<List<String>> csv) {
         boolean onkey = false;
         boolean QEPJoin = false;
@@ -430,7 +441,7 @@ public class PratubesSBD {
         } else if (usedData.get(0).isEmpty() && inisial.size() > 2) {
             List<Integer> usedTable = new ArrayList();
             List<String> alreadyPrinted = new ArrayList();
-            
+
             for (int h = 0; h < 3; h = h + 2) {
                 for (int i = 1; i < csv.size(); i++) {
                     if (inisial.get(h).equalsIgnoreCase(csv.get(i).get(0))) {
@@ -548,21 +559,10 @@ public class PratubesSBD {
     }
 
     public static void main(String[] args) throws IOException {
-//        List<List<String>> csv = new ArrayList();
-//        csv = bacafile();//baca file database
-//        Scanner sc = new Scanner(System.in);
-//        System.out.println("Query: ");
-//
-//        input = sc.nextLine();
-//        String[] syntax = input.split(" ");
-//        List<String> initials = new ArrayList();
-//
-//        if (parserQuery(syntax, initials, csv)) {
-//            printSpesifikasi(initials);
-//            QEPandCost(initials, csv);
-//        } else {
-//            System.out.println("\nSyntax Error");
-//        }
+        List<List<String>> csv = new ArrayList();
+        csv = bacafile();//baca file database
+        menu(csv);
+
 //        System.out.println("");
     }
 }
