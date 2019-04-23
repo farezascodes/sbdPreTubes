@@ -20,7 +20,10 @@ public class PratubesSBD {
             System.out.println("3. Pencarian Record");
             System.out.println("4. QEP dan Cost");
             System.out.println("5. Shared Pool");
+            System.out.println("0. exit");
+            System.out.print("pilih:");
             choice = choose.nextLine();
+            System.out.println("");
             if ("1".equals(choice)) {
                 BFRandFanOutRasio(csv);
             }
@@ -46,8 +49,19 @@ public class PratubesSBD {
             }
             else if ("5".equals(choice)) {
                 readQEP();
-            } else {
+            
+            }
+            else if ("0".equals(choice)){
+                System.out.println("terima kasih");
+            }
+            else {
                 System.out.println("input invalid");
+            }
+            System.out.println("Press \"ENTER\" to continue...");
+            try {
+                System.in.read();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         choose.close();
@@ -270,6 +284,7 @@ public class PratubesSBD {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(new File(
                     "sharedPool.txt"), true));
+            bw.write("\n\n");
             for (int j = 0; j < anotatedQEP.get(optimal).size(); j++) {
                 bw.write(anotatedQEP.get(optimal).get(j));
                 bw.newLine();
@@ -339,7 +354,6 @@ public class PratubesSBD {
                     double rekord = Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3));
                     double jumBlok = Math.ceil((jumRekord * rekord) / Float.parseFloat(csv.get(0).get(1))); // (jumlah rekord * size rekord)/block size = banyak blok tersedia
                     double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0)))); //fan-out ratio
-                    double jumIndex = Math.ceil(jumBlok / FOR); //banyak rekord di index
 
                     double notIndexed = Math.ceil(hasil / (Math.ceil(Float.parseFloat(csv.get(0).get(1)) / Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3)))));
                     double indexed = Math.ceil(notIndexed / FOR) + 1; // banyak blok yang diakses lewat index (jumlah blok di main/fan-out)
@@ -511,7 +525,6 @@ public class PratubesSBD {
                 anotatedQEP.add(tempAnotatedQEP);
             }
         }
-        System.out.println(anotatedQEP);
         if (!cost.isEmpty()) {
             int smallest;
             if (cost.get(0) < cost.get(1)) {
