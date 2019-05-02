@@ -28,7 +28,7 @@ public class PratubesSBD {
                 BFRandFanOutRasio(csv);
             } else if ("2".equals(choice)) {
                 jumBlock(csv);
-            } else if ("3".equals(choice)) {
+            } else if ("3".equals(choice)) { 
                 cariRecord(csv);
             } else if ("4".equals(choice)) {
                 Scanner sc = new Scanner(System.in);
@@ -62,7 +62,6 @@ public class PratubesSBD {
     }
 
     static boolean parserQuery(String[] kata, List<String> initials, List<List<String>> csv) throws IOException {
-
         boolean syntax = false;
         if (kata.length > 3) {
             if (kata[kata.length - 1].charAt(kata[kata.length - 1].length() - 1) == ';') { // cek untuk ';' diakhir
@@ -162,21 +161,22 @@ public class PratubesSBD {
     }
 
     static boolean parserWhere(List<List<String>> csv, List<String> inisial, String[] kata) {
-        List<String> temp = new ArrayList();
-        for (int j = 0; j < inisial.size(); j = j + 2) {
-            for (int k = 0; k < csv.size(); k++) {
-                if (csv.get(k).get(0).equals(inisial.get(j))) {
-                    if (csv.get(k).indexOf(kata[0]) != -1) {
-                        for (int i = 0; i < kata.length; i++) {
-                            temp.add(kata[i]);
+        if(kata[1].equals("=")){
+            List<String> temp = new ArrayList();
+            for (int j = 0; j < inisial.size(); j = j + 2) {
+                for (int k = 0; k < csv.size(); k++) {
+                    if (csv.get(k).get(0).equals(inisial.get(j))) {
+                        if (csv.get(k).indexOf(kata[0]) != -1) {
+                            for (int i = 0; i < kata.length; i++) {
+                                temp.add(kata[i]);
+                            }
+                            usedData.add(temp);
+                            return true;
                         }
-                        usedData.add(temp);
-                        return true;
                     }
                 }
             }
         }
-        System.out.println("loh kok");
         return false;
     }
 
@@ -295,7 +295,6 @@ public class PratubesSBD {
         String st = br.readLine();
         while ((st = br.readLine()) != null) {
             System.out.println(st);
-
         }
     }
 
@@ -313,7 +312,7 @@ public class PratubesSBD {
 
     static void BFRandFanOutRasio(List<List<String>> csv) {
         for (int i = 1; i < csv.size(); i++) {
-            double bfr = Math.ceil(Float.parseFloat(csv.get(0).get(1)) / Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3)));
+            double bfr = Math.floor(Float.parseFloat(csv.get(0).get(1)) / Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3)));
             double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0))));
             // block / pointer 
             System.out.println("BFR " + csv.get(i).get(0) + " : " + bfr);
@@ -337,11 +336,11 @@ public class PratubesSBD {
     }
 
     static void cariRecord(List<List<String>> csv) { //belom dikoreksi rumusnya, menu nomer 3
-        Scanner cari = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);
         System.out.println(">> Cari rekord ke- :");
-        int hasil = cari.nextInt();
+        int cari = sc.nextInt();
         System.out.println(">> Nama tabel :");
-        String tabel = cari.next();
+        String tabel = sc.next();
 //        if (tabel.matches("[a-zA-Z_]")) {
         for (int i = 1; i < csv.size(); i++) {
             if (tabel.equalsIgnoreCase(csv.get(i).get(0))) {
@@ -349,12 +348,14 @@ public class PratubesSBD {
                 double rekord = Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3));
                 double jumBlok = Math.ceil((jumRekord * rekord) / Float.parseFloat(csv.get(0).get(1))); // (jumlah rekord * size rekord)/block size = banyak blok tersedia
                 double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0)))); //fan-out ratio
-
-                double notIndexed = Math.ceil(hasil / (Math.ceil(Float.parseFloat(csv.get(0).get(1)) / Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3)))));
+                double BFR = (Math.ceil(Float.parseFloat(csv.get(0).get(1)) / Float.parseFloat(csv.get(i).get(csv.get(i).size() - 3))));
+                // ceil(cari/bfr)
+                double notIndexed = Math.ceil(cari / BFR);
                 double indexed = Math.ceil(notIndexed / FOR) + 1; // banyak blok yang diakses lewat index (jumlah blok di main/fan-out)
 
                 System.out.println("Menggunakan indeks, jumlah blok yang diakses: " + indexed);
                 System.out.println("Tanpa indeks, jumlah blok yang diakses: " + notIndexed);
+                break;
             }
         }
 //        } else {
@@ -398,7 +399,8 @@ public class PratubesSBD {
                         tabel = it;
                     }
                 }
-                if (tabel > -1) {
+                if (tabel > -1 && !usedData.get(0).isEmpty()) {
+                    // jumlah block
                     double Br = Math.ceil(Math.ceil(Float.parseFloat(csv.get(tabel).get(csv.get(tabel).size() - 3)) * Float.parseFloat(csv.get(tabel).get(csv.get(tabel).size() - 2))) / Float.parseFloat(csv.get(0).get(1)));
                     for (int i = 1; i <= 2; i++) {
                         selection = "SELECTION ";
@@ -415,13 +417,13 @@ public class PratubesSBD {
                         System.out.print("-- on the fly");
                         projection += "-- on the fly";
                         boolean where = false;
-                        if (!usedData.get(0).isEmpty()) {
+                        if (!usedData.get(0).isEmpty()) { // usedData.get(0) atribut where yg dipake
                             where = true;
                             selection += usedData.get(0).get(0) + usedData.get(0).get(1) + usedData.get(0).get(2) + " -- A" + i;
                             System.out.print("\nSELECTION " + usedData.get(0).get(0) + usedData.get(0).get(1) + usedData.get(0).get(2));
                             System.out.print(" -- A" + i);
                         }
-                        if (i == 1 && !usedData.get(0).isEmpty()) {
+                        if (i == 1 && where) {
                             for (int j = 1; j < csv.size(); j++) {
                                 if (usedData.get(0).get(0).equals(csv.get(j).get(1))) {
                                     selection += " key";
@@ -429,6 +431,7 @@ public class PratubesSBD {
                                     onkey = true;
                                 }
                             }
+                                    
                         }
                         table = inisial.get(0);
                         System.out.println("\n" + inisial.get(0));
@@ -441,14 +444,14 @@ public class PratubesSBD {
                             } else if (!onkey) {
                                 // br
                                 cost.add(Br);
-                                strCost += Double.toString(Math.ceil(Br / 2));
+                                strCost += Double.toString(Math.ceil(Br));
                             }
                         }
                         if (i == 2) {
                             double FOR = Math.floor(Float.parseFloat(csv.get(0).get(1)) / (Float.parseFloat(csv.get(i).get(csv.get(i).size() - 1)) + Float.parseFloat(csv.get(0).get(0))));
-                            double heigth = Math.floor(Math.log10(Float.parseFloat(csv.get(0).get(1)) / Math.log10(FOR)));
-                            cost.add(heigth + 1);
-                            strCost += Double.toString(heigth + 1);
+                            double hi = Math.ceil(Math.log10(Float.parseFloat(csv.get(0).get(1)) / Math.log10(FOR)));
+                            cost.add(hi + 1);
+                            strCost += Double.toString(hi + 1);
                         }
                         strCost += " Blocks";
                         System.out.print(cost.get(i - 1) + " Blocks\n");
@@ -466,7 +469,7 @@ public class PratubesSBD {
                 }
             } else if (usedData.get(0).isEmpty() && inisial.size() > 2) {
                 List<Integer> usedTable = new ArrayList();
-                List<String> alreadyPrinted = new ArrayList();
+                List<String> alreadyPrinted = new ArrayList(); // list yg menyimpan data yang sudah diambil
 
                 for (int h = 0; h < 3; h = h + 2) {
                     for (int i = 1; i < csv.size(); i++) {
@@ -487,7 +490,7 @@ public class PratubesSBD {
                     if (i == 1) {
                         for (int j = 1; j <= 2; j++) {
                             for (int k = 0; k < usedData.get(j).size(); k++) {
-                                boolean found = false;
+                                boolean found = false; // found in alreadyPrinted
                                 for (int l = 0; l < alreadyPrinted.size(); l++) {
                                     if (alreadyPrinted.get(l).equals(usedData.get(j).get(k))) {
                                         found = true;
@@ -514,6 +517,7 @@ public class PratubesSBD {
                     System.out.print(csv.get(usedTable.get(1)).get(0) + "." + csv.get(usedTable.get(0)).get(1) + " -- BNLJ \n");
 
                     if (i == 2) {
+                        // procedure tukar
                         int temp = usedTable.get(0);
                         usedTable.set(0, usedTable.get(1));
                         usedTable.set(1, temp);

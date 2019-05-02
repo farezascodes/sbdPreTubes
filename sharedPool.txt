@@ -8,9 +8,17 @@ Cost: 4.0 Blocks
 
 
 
-select harga,id_pasien from konsultasi join pasien using (id_pasien);
-PROJECTION harga, id_pasien, -- on the fly
-JOIN konsultasi.id_konsul = pasien.id_konsul -- BNLJ
-konsultasi    pasien    
-Cost: 20900.0 Blocks
+select id_dok from dokter join konsultasi using (id_dok);
+PROJECTION id_dok, -- on the fly
+JOIN dokter.id_dok = konsultasi.id_dok -- BNLJ
+dokter    konsultasi    
+Cost: 1215.0 Blocks
+
+
+
+select id_konsul from konsultasi where harga = 21;
+PROJECTION id_konsul, -- on the fly
+SELECTION harga=21 -- A2
+konsultasi
+Cost: 4.0 Blocks
 
